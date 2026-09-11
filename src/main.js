@@ -3,6 +3,7 @@ import { initPeriodicTable } from './modules/periodicTable.js';
 import { initCalculator }    from './modules/calculator.js';
 import { initConcentration, initMolarity } from './modules/concentration.js';
 import { initQuiz }          from './modules/quiz.js';
+import { initTheme }         from './modules/theme.js';
 
 // Navigation: swap active page when a nav button is clicked
 function initNavigation() {
@@ -33,6 +34,7 @@ function initNavigation() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
   initNavigation();
   initPeriodicTable();
   initCalculator();
