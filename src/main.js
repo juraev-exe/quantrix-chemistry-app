@@ -1,33 +1,41 @@
 import './style.css';
 import { initPeriodicTable } from './modules/periodicTable.js';
-import { initCalculator } from './modules/calculator.js';
-import { initConcentration } from './modules/concentration.js';
+import { initCalculator }    from './modules/calculator.js';
+import { initConcentration, initMolarity } from './modules/concentration.js';
+import { initQuiz }          from './modules/quiz.js';
 
-// Setup page navigation
+// Navigation: swap active page when a nav button is clicked
 function initNavigation() {
   const navButtons = document.querySelectorAll(".nav-btn");
-  const pages = document.querySelectorAll(".page");
+  const pages      = document.querySelectorAll(".page");
 
   navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      const targetPageId = btn.dataset.page;
-      
+      const targetId = btn.dataset.page;
+
       navButtons.forEach(b => b.classList.remove("active"));
       pages.forEach(p => p.classList.remove("active"));
 
       btn.classList.add("active");
-      const targetPage = document.getElementById(targetPageId);
-      if (targetPage) {
-        targetPage.classList.add("active");
+      const target = document.getElementById(targetId);
+      if (target) target.classList.add("active");
+
+      // Lazy-init quiz when its tab is first opened
+      if (targetId === 'quiz-page') {
+        const container = document.getElementById("quiz-container");
+        if (container && !container.dataset.initialized) {
+          container.dataset.initialized = '1';
+          initQuiz();
+        }
       }
     });
   });
 }
 
-// Bootstrap application on DOM load
 document.addEventListener("DOMContentLoaded", () => {
   initNavigation();
   initPeriodicTable();
   initCalculator();
   initConcentration();
+  initMolarity();
 });

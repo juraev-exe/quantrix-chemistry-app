@@ -1,43 +1,61 @@
-let audioCtx = null;
+// P2: Single AudioContext created once at module load and reused.
+// Mute state persisted in localStorage.
 
-function getAudioContext() {
-  if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (AudioContextClass) {
-      audioCtx = new AudioContextClass();
-    }
+const MUTE_KEY = 'quantrix_muted';
+
+// Create context lazily on first user interaction to comply with browser policy
+let _audioCtx = null;
+
+function getCtx() {
+  if (!_audioCtx) {
+    const Ctor = window.AudioContext || window.webkitAudioContext;
+    if (Ctor) _audioCtx = new Ctor();
   }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume();
+  if (_audioCtx && _audioCtx.state === 'suspended') {
+    _audioCtx.resume();
   }
-  return audioCtx;
+  return _audioCtx;
+}
+
+/** Returns true when sound is currently muted. */
+export function isMuted() {
+  return localStorage.getItem(MUTE_KEY) === '1';
+}
+
+/** Toggle mute and persist to localStorage. Returns new muted state. */
+export function toggleMute() {
+  const next = !isMuted();
+  localStorage.setItem(MUTE_KEY, next ? '1' : '0');
+  return next;
 }
 
 /**
- * Play a synthesizer sine wave tone for an element
- * @param {number} atomicNumber 
+ * Play a sine wave tone whose frequency is scaled to the element's atomic number.
+ * Silently skips when muted.
+ * @param {number} atomicNumber
  */
 export function playElementSound(atomicNumber) {
+  if (isMuted()) return;
+
   try {
-    const ctx = getAudioContext();
+    const ctx = getCtx();
     if (!ctx) return;
 
-    const osc = ctx.createOscillator();
+    const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "sine";
-    // Frequency scaled to atomic number
-    osc.frequency.value = 220 + (atomicNumber * 4);
+    osc.type = 'sine';
+    osc.frequency.value = 220 + atomicNumber * 4;
 
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(0.12, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
 
     osc.connect(gain);
     gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.35);
+    osc.start(t);
+    osc.stop(t + 0.35);
   } catch (err) {
-    console.warn("AudioContext error or not supported:", err);
+    console.warn('AudioContext error:', err);
   }
 }
