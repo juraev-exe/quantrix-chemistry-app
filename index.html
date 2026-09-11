@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Quantrix - Interactive chemistry learning application for 7th and 8th grade students featuring a periodic table, audio synthesis, calculator, and solution concentration tools." />
+  <title>Quantrix &mdash; Chemistry App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <header>
+    <h1 class="logo">QUANTRIX</h1>
+    <p class="subtitle">Interactive Chemistry Learning for 7th &amp; 8th Graders</p>
+  </header>
+
+  <nav id="nav" aria-label="Main Navigation">
+    <button class="nav-btn active" data-page="table-page" type="button">
+      <span>⚛️</span> Periodic Table
+    </button>
+    <button class="nav-btn" data-page="calc-page" type="button">
+      <span>🧮</span> Calculator
+    </button>
+    <button class="nav-btn" data-page="conc-page" type="button">
+      <span>🧪</span> Concentration
+    </button>
+    <button class="nav-btn" data-page="about-page" type="button">
+      <span>ℹ️</span> About
+    </button>
+  </nav>
+
+  <main>
+    <!-- PERIODIC TABLE PAGE -->
+    <section class="page active" id="table-page">
+      <div class="table-wrapper">
+        <div id="table" role="region" aria-label="Periodic Table of Elements"></div>
+      </div>
+      <div id="info" aria-live="polite">
+        <p class="placeholder">Click any element above to explore facts &amp; hear its frequency ⚛️</p>
+      </div>
+    </section>
+
+    <!-- CALCULATOR PAGE -->
+    <section class="page" id="calc-page">
+      <div class="card">
+        <h2>Scientific &amp; Arithmetic Calculator</h2>
+        <input id="calc-display" type="text" value="0" readonly aria-label="Calculator screen" />
+        <div id="calc-grid"></div>
+      </div>
+    </section>
+
+    <!-- CONCENTRATION PAGE -->
+    <section class="page" id="conc-page">
+      <div class="card">
+        <h2>Solution Concentration (m/v %)</h2>
+        <form id="conc-form" onsubmit="return false;">
+          <div class="field">
+            <label for="mass">Solute Mass (grams)</label>
+            <input type="number" id="mass" placeholder="e.g. 15" step="any" min="0" required />
+          </div>
+          <div class="field">
+            <label for="volume">Total Solution Volume (mL)</label>
+            <input type="number" id="volume" placeholder="e.g. 250" step="any" min="0.001" required />
+          </div>
+          <button id="conc-btn" type="submit">Calculate Concentration %</button>
+          <div id="conc-result" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ABOUT PAGE -->
+    <section class="page" id="about-page">
+      <div class="card">
+        <h2>About Quantrix</h2>
+        <p class="about-text">
+          <b>Quantrix</b> is a student-centered chemistry platform designed to make middle school chemistry engaging, tactile, and intuitive.
+        </p>
+        <p class="about-text">
+          Features include an interactive 118-element periodic table with real-time frequency synthesis via the Web Audio API, quick scientific calculation tools, and automated solution concentration calculations.
+        </p>
+        <p class="about-text">
+          Created with ❤️ by <b>Hadicha Ibragimova</b>, student at <b>MMT School</b>.
+        </p>
+        <span class="badge-tag">Class of 2026</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Quantrix &copy; Hadicha Ibragimova &mdash; MMT School &bull; Built with Vite
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
