@@ -28,6 +28,7 @@
 /* Dark theme — deep graphite, not pure black */
 :root[data-theme="dark"] {
   --color-bg: #14181C;
+  --color-transparent: transparent;
   --color-bg-glow: #1C232C;
   --color-surface: #1D232B;
   --color-surface-hover: #27303B;
@@ -54,8 +55,8 @@
   --color-accent-purple: #C084FC;
   --color-accent-gradient: linear-gradient(135deg, #4fc3f7, #7e57ff, #ff4fd8);
   --color-btn-gradient: linear-gradient(90deg, #4fc3f7, #8e6dff);
-  --color-focus-ring: #E2F2FF;
-  --color-focus-halo: #0C1014;
+  --color-focus-ring: #0C1014;
+  --color-focus-halo: #E2F2FF;
   --color-success-bg: #143A24;
   --color-success-border: #2e9e5b;
   --color-success-text: #58db96;
@@ -86,6 +87,7 @@
 /* Light theme — warm paper tone, not pure white */
 :root[data-theme="light"] {
   --color-bg: #F7F5F0;
+  --color-transparent: transparent;
   --color-bg-glow: #FCFBF8;
   --color-surface: #F0EDE5;
   --color-surface-hover: #E3DFD5;
@@ -163,14 +165,9 @@ body {
 
 /* Single cross-fade on theme switch (skipped for prefers-reduced-motion) */
 @media (prefers-reduced-motion: no-preference) {
-  body,
-  header,
-  .poster-container,
-  .poster-header,
-  .center-key-card,
-  .card,
-  .search-wrapper,
-  footer {
+  html.theme-transition,
+  html.theme-transition body,
+  html.theme-transition body * {
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
@@ -194,7 +191,7 @@ h1.logo {
   background: var(--color-accent-gradient);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  color: var(--color-transparent);
   margin: 0 0 4px 0;
 }
 
@@ -240,7 +237,7 @@ p.subtitle {
   background: var(--color-btn-gradient);
   color: var(--color-text-on-accent);
   font-weight: 700;
-  border-color: transparent;
+  border-color: var(--color-transparent);
 }
 
 /* Page Containers */
@@ -308,18 +305,50 @@ main {
   color: var(--color-text-muted);
 }
 
-.poster-corner-topright {
+.modern-sticker {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 154px;
+  padding: 9px 11px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
+  transform: rotate(2deg);
+}
+
+.sticker-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.sticker-copy {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  line-height: 1.5;
-  color: var(--color-text-dim);
-  text-transform: uppercase;
-  min-width: 140px;
+  gap: 2px;
+  color: var(--color-text);
+  text-align: left;
+  line-height: 1.1;
+}
+
+.sticker-copy strong {
+  font-size: 10px;
+  letter-spacing: 1.8px;
+}
+
+.sticker-copy small {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.5px;
 }
 
 /* Scroll Container for table preservation */
@@ -780,7 +809,7 @@ main {
   background: var(--color-btn-gradient);
   color: var(--color-text-on-accent);
   font-weight: 800;
-  border-color: transparent;
+  border-color: var(--color-transparent);
 }
 
 #calc-grid button.clear {
@@ -958,7 +987,7 @@ footer {
 
 .element-search {
   flex: 1;
-  background: transparent;
+  background: var(--color-transparent);
   border: none;
   outline: none;
   color: var(--color-text);
@@ -1107,7 +1136,7 @@ footer {
 
 .quiz-choice-btn {
   padding: 14px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   border: 1.5px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
@@ -1175,7 +1204,7 @@ footer {
   padding: 10px;
   border-radius: var(--radius-btn);
   border: 1px solid var(--color-border);
-  background: transparent;
+  background: var(--color-transparent);
   color: var(--color-text-muted);
   font-family: inherit;
   font-size: 13px;
@@ -1184,3 +1213,35 @@ footer {
 }
 
 .quiz-reset-btn:hover { color: var(--color-danger-text); border-color: var(--color-danger-border); }
+
+@media (max-width: 860px) {
+  .poster-container { padding: 18px 16px 16px; }
+  .poster-header { align-items: center; }
+  .modern-sticker { display: none; }
+  .poster-title { font-size: clamp(2rem, 8vw, 2.8rem); }
+}
+
+@media (max-width: 640px) {
+  body { padding: 12px 8px; }
+  #nav { gap: 6px; }
+  .nav-btn { flex: 1 1 30%; justify-content: center; padding: 9px 8px; font-size: 12px; }
+  .poster-container { padding: 16px 10px 12px; }
+  .poster-title { font-size: 2rem; }
+  .poster-subtitle { font-size: 9px; letter-spacing: 2px; }
+  .table-toolbar { gap: 8px; }
+  .search-wrapper { min-width: 100%; }
+  .mute-btn { flex: 1; padding-inline: 8px; }
+  .card { padding: 22px 16px; }
+  .quiz-choices { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

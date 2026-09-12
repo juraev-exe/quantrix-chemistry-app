@@ -1,7 +1,7 @@
 // Theme system: dark/light with localStorage persistence and
 // OS-preference fallback (prefers-color-scheme).
 
-const THEME_KEY = 'quantrix_theme';
+const THEME_KEY = 'quantrix-theme';
 
 const root = document.documentElement;
 const modeQuery = window.matchMedia('(prefers-color-scheme: light)');
