@@ -1,4 +1,7 @@
 /* --- Student Projects Return Banner --- */
+.is-iframe .project-banner-header {
+  display: none !important;
+}
 .project-banner-header {
   position: sticky;
   top: 0;

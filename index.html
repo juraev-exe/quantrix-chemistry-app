@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Student Projects Showcase" />
   <title>Student Projects</title>
   <script>
     (function () {
@@ -22,31 +21,18 @@
 </head>
 <body>
 
-  <!-- Minimal Header -->
-  <header class="minimal-nav">
-    <div class="nav-container">
-      <div class="nav-brand">Student Projects</div>
-
-      <div class="nav-actions">
-        <div class="search-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="search" id="search-input" placeholder="Search student..." autocomplete="off" aria-label="Search student projects" />
-        </div>
-
-        <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle theme" title="Toggle theme">
-          <span class="theme-icon">◐</span>
-        </button>
-      </div>
+  <header class="nav-header">
+    <div class="nav-wrap">
+      <h1 class="brand-title">Student Projects</h1>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+        <span>◐</span>
+      </button>
     </div>
   </header>
 
-  <!-- Showcase Cards Grid -->
-  <main class="showcase-container">
+  <main class="showcase-main">
     <div id="projects-grid" class="cards-grid">
-      <!-- Minimalist cards rendered dynamically via src/dashboard.js -->
+      <!-- Minimalist cards rendered via src/dashboard.js -->
     </div>
   </main>
 

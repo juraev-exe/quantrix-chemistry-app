@@ -7,6 +7,9 @@
   <title>Quantrix &mdash; Hadicha Ibragimova (Chemistry P1)</title>
   <script>
     (function () {
+      if (window.self !== window.top) {
+        document.documentElement.classList.add('is-iframe');
+      }
       try {
         var t = localStorage.getItem('quantrix_theme');
         if (t !== 'dark' && t !== 'light') {
