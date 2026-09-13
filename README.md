@@ -1,41 +1,83 @@
-# ⚛️ Quantrix — Chemistry App
+# 🎓 Student Projects Hub
 
-An interactive educational chemistry application designed for 7th and 8th-grade students.
+A modern, scalable educational platform and project management dashboard designed to organize, showcase, and run student science and engineering projects.
 
-Created by **Hadicha Ibragimova**, student at **MMT School**.
-
----
-
-## ✨ Features
-
-- **Interactive Periodic Table**: All 118 chemical elements arranged in standard periodic layout with color-coded elemental groups.
-- **Audio Synthesizer**: Each element triggers a unique harmonic tone scaled to its atomic number using the browser's native Web Audio API.
-- **Element Inspector**: Instant access to atomic number, atomic mass, symbol, name, and classification.
-- **Calculator**: Fast arithmetic tool for chemistry problem-solving and percent calculations.
-- **Solution Concentration Tool**: Instant mass/volume percentage calculation with input validation.
-- **Responsive & Modern UI**: Built with dark mode aesthetics, glassmorphism, smooth animations, and Google Fonts (Outfit & Inter).
+Each student project is completely isolated in its own dedicated workspace, while the primary dashboard dynamically discovers, indexes, and presents them as visual interactive cards.
 
 ---
 
-## 🛠️ Project Structure
+## 🏗️ Architecture & Project Structure
 
 ```text
-├── index.html               # Main HTML entry point
-├── package.json             # NPM dependencies and development scripts
-├── vite.config.js           # Vite build tooling configuration
-├── vercel.json              # Vercel deployment configuration
-├── .gitignore               # Git ignored patterns
-└── src/
-    ├── main.js              # Application bootstrapper and navigation controller
-    ├── style.css            # Design system, CSS variables, and layout
-    ├── data/
-    │   └── elements.js      # Complete 118-element periodic dataset
-    └── modules/
-        ├── audio.js         # Web Audio API sound generator
-        ├── calculator.js    # Arithmetic calculator logic
-        ├── concentration.js # Solution concentration calculator
-        └── periodicTable.js # Periodic table grid and element card
+Student_Projects/
+├── index.html                           # Main Student Projects Dashboard UI
+├── vite.config.js                       # Multi-Page (MPA) auto-discovery build config
+├── package.json                         # Project metadata and dependencies
+├── vercel.json                          # Vercel static & MPA routing configuration
+├── src/                                 # Dashboard core assets
+│   ├── dashboard.js                     # Auto-discovery, search, filters & stats
+│   └── dashboard.css                    # Professional dark/light design system
+│
+└── Projects/                            # Isolated student project workspaces
+    ├── Hadicha_Chemistry_P1/            # Hadicha Ibragimova's Quantrix Chemistry project
+    │   ├── index.html                   # Chemistry app with return header
+    │   ├── project.json                 # Metadata manifest
+    │   └── src/                         # Self-contained modules, data, and styles
+    │
+    ├── Student2_Physics_P2/             # Alex Chen's Kinematics Lab simulation
+    │   ├── index.html                   # Physics simulator app with return header
+    │   ├── project.json                 # Metadata manifest
+    │   └── src/                         # Physics simulation scripts & styles
+    │
+    └── Malika_Biology_P1/               # Malika Karimova's Cellular Microscopy Lab
+        ├── index.html                   # Biology lab app with return header
+        ├── project.json                 # Metadata manifest
+        └── src/
 ```
+
+---
+
+## 📋 Naming Convention
+
+Every student project folder inside `Projects/` strictly follows the format:
+
+```text
+Projects/StudentName_Subject_ProjectNumber/
+```
+
+**Examples:**
+- `Hadicha_Chemistry_P1`
+- `Student2_Physics_P2`
+- `Malika_Biology_P1`
+
+---
+
+## ➕ How to Add a New Student Project
+
+The dashboard is completely scalable and uses **dynamic auto-discovery**.
+
+1. Create a new folder inside `Projects/`:
+   ```bash
+   mkdir Projects/YourName_Subject_P1
+   ```
+
+2. Add a `project.json` file inside that folder:
+   ```json
+   {
+     "studentName": "Firstname Lastname",
+     "subject": "Physics",
+     "projectNumber": "P1",
+     "title": "Project Title Here",
+     "status": "In Progress",
+     "description": "A concise summary of your project...",
+     "tags": ["Topic 1", "Topic 2"],
+     "lastUpdated": "2026-09-13"
+   }
+   ```
+
+3. Add an `index.html` with your project's code and assets inside that folder.
+
+4. Start the dev server (`npm run dev`) or build (`npm run build`). The dashboard will automatically detect and render your new card!
 
 ---
 
@@ -43,7 +85,7 @@ Created by **Hadicha Ibragimova**, student at **MMT School**.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 18+ recommended)
+- [Node.js](https://nodejs.org/) (version 18+)
 - [npm](https://www.npmjs.com/)
 
 ### Installation
@@ -54,49 +96,35 @@ npm install
 
 ### Local Development
 
-Start the development server with Hot Module Replacement (HMR):
-
 ```bash
 npm run dev
 ```
 
-Visit the local server in your browser (typically `http://localhost:3000`).
+Visit the local server in your browser (default: `http://localhost:3000`).
 
 ### Production Build
-
-Compile and optimize assets into `dist/`:
 
 ```bash
 npm run build
 ```
 
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
 ---
 
-## 🌐 Deployment to Vercel
+## 🌐 Deployment
 
-### Option 1: Automatic Deployment via GitHub (Recommended)
-1. Push this repository to GitHub.
-2. Log into [Vercel](https://vercel.com).
-3. Click **Add New Project** -> **Import Git Repository**.
-4. Select `quantrix-chemistry-app`.
-5. Vercel will automatically detect **Vite** and configure the build command (`npm run build`) and output directory (`dist`).
-6. Click **Deploy**.
+### Vercel Deployment
 
-### Option 2: CLI Deployment
+Deploy directly via the Vercel CLI:
+
 ```bash
-npx vercel
+npx vercel --prod
 ```
-Follow the interactive prompts to link your Vercel account and deploy.
+
+Or import the GitHub repository into your [Vercel Dashboard](https://vercel.com/new).
 
 ---
 
 ## 📄 License & Credits
 
-- **Project Lead**: Hadicha Ibragimova (MMT School)
+- **School**: MMT School
 - **Year**: 2026

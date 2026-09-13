@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Quantrix - Interactive chemistry learning application for 7th and 8th grade students featuring a periodic table, audio synthesis, calculator, and solution concentration tools." />
+  <title>Quantrix &mdash; Hadicha Ibragimova (Chemistry P1)</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('quantrix_theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+
+  <!-- Persistent Student Dashboard Return Header -->
+  <aside class="project-banner-header" aria-label="Project Breadcrumbs">
+    <div class="banner-inner">
+      <a href="/" class="dashboard-return-btn" title="Return to Student Projects Dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Student Projects Dashboard</span>
+      </a>
+      <div class="banner-meta">
+        <span class="banner-pill student">👤 Hadicha Ibragimova</span>
+        <span class="banner-pill subject">🧪 Chemistry</span>
+        <span class="banner-pill tag">P1</span>
+      </div>
+    </div>
+  </aside>
+
+  <header>
+    <h1 class="logo">QUANTRIX</h1>
+    <p class="subtitle">Interactive Chemistry Learning for 7th &amp; 8th Graders</p>
+  </header>
+
+  <nav id="nav" aria-label="Main Navigation">
+    <button class="nav-btn active" data-page="table-page" type="button">
+      <span>⚛️</span> Periodic Table
+    </button>
+    <button class="nav-btn" data-page="calc-page" type="button">
+      <span>🧮</span> Calculator
+    </button>
+    <button class="nav-btn" data-page="conc-page" type="button">
+      <span>🧪</span> Concentration
+    </button>
+    <button class="nav-btn" data-page="quiz-page" type="button">
+      <span>🎓</span> Quiz
+    </button>
+    <button class="nav-btn" data-page="about-page" type="button">
+      <span>ℹ️</span> About
+    </button>
+  </nav>
+
+  <main>
+    <!-- PERIODIC TABLE PAGE -->
+    <section class="page active" id="table-page">
+      <div class="poster-container">
+        <!-- Top Poster Header & Corner Slogans -->
+        <div class="poster-header">
+          <div class="poster-header-center">
+            <h2 class="poster-title">Periodic Table of the Elements</h2>
+            <div class="poster-subtitle">CHEMICAL ELEMENTS IN ORDER OF ATOMIC NUMBER</div>
+          </div>
+          <div class="modern-sticker" aria-label="Quantrix chemistry lab note">
+            <span class="sticker-mark">QX</span>
+            <span class="sticker-copy">
+              <strong>LAB NOTE</strong>
+              <small>ELEMENTS / 2026</small>
+            </span>
+          </div>
+        </div>
+
+        <!-- P1-3: Search bar + P2: Mute toggle -->
+        <div class="table-toolbar">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="search"
+              id="element-search"
+              class="element-search"
+              placeholder="Search element name or symbol…"
+              autocomplete="off"
+              aria-label="Search periodic table"
+            />
+            <button id="search-clear" class="search-clear" type="button" aria-label="Clear search" title="Clear">✕</button>
+          </div>
+          <button id="mute-toggle" class="mute-btn" type="button" aria-label="Toggle element sound">🔊 Sound On</button>
+          <button id="theme-toggle" class="mute-btn" type="button">☀️ Light</button>
+        </div>
+
+        <!-- Scrollable Table Board -->
+        <div class="table-scroll-container">
+          <div id="table-main" class="table-main-grid" role="region" aria-label="Periodic Table of Elements">
+            <!-- Rendered dynamically by periodicTable.js -->
+          </div>
+
+          <!-- Bottom Lanthanides & Actinides (f-block) -->
+          <div id="table-fblock" class="table-fblock-container">
+            <!-- Rendered dynamically by periodicTable.js -->
+          </div>
+        </div>
+
+        <!-- Bottom Poster Slogans -->
+        <div class="poster-footer">
+          <div class="poster-footer-left">
+            <span>KNOW</span>
+            <span>EXPLORE</span>
+            <span>DISCOVER</span>
+          </div>
+          <div class="poster-footer-center">
+            ELEMENTS FOR A BETTER TOMORROW
+          </div>
+          <div class="poster-footer-right">
+            <span>A CLEANER</span>
+            <span>GREENER</span>
+            <span>BRIGHTER PLANET</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULATOR PAGE -->
+    <section class="page" id="calc-page">
+      <div class="card">
+        <h2>Scientific &amp; Arithmetic Calculator</h2>
+        <input id="calc-display" type="text" value="0" readonly aria-label="Calculator screen" />
+        <div id="calc-grid"></div>
+      </div>
+    </section>
+
+    <!-- CONCENTRATION PAGE -->
+    <section class="page" id="conc-page">
+      <!-- m/v % Card -->
+      <div class="card">
+        <h2>Solution Concentration (m/v %)</h2>
+        <form id="conc-form" onsubmit="return false;">
+          <div class="field">
+            <label for="mass">Solute Mass (grams)</label>
+            <input type="number" id="mass" placeholder="e.g. 15" step="any" min="0" required />
+          </div>
+          <div class="field">
+            <label for="volume">Total Solution Volume (mL)</label>
+            <input type="number" id="volume" placeholder="e.g. 250" step="any" min="0.001" required />
+          </div>
+          <button id="conc-btn" type="submit">Calculate Concentration %</button>
+          <div id="conc-result" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <!-- P1-2: Molarity Card -->
+      <div class="card" style="margin-top: 24px;">
+        <h2>Molarity Calculator (mol/L)</h2>
+        <form id="molarity-form" onsubmit="return false;">
+          <div class="field">
+            <label for="mol-solute-mass">Solute Mass (grams)</label>
+            <input type="number" id="mol-solute-mass" placeholder="e.g. 5.85" step="any" min="0" />
+          </div>
+          <div class="field">
+            <label for="mol-element-select">Auto-fill Molar Mass from Element</label>
+            <select id="mol-element-select"></select>
+          </div>
+          <div class="field">
+            <label for="mol-molar-mass">Molar Mass (g/mol) — edit manually if needed</label>
+            <input type="number" id="mol-molar-mass" placeholder="e.g. 58.44" step="any" min="0.001" />
+          </div>
+          <div class="field">
+            <label for="mol-volume-liters">Solution Volume (liters)</label>
+            <input type="number" id="mol-volume-liters" placeholder="e.g. 1.0" step="any" min="0.0001" />
+          </div>
+          <button id="molarity-btn" type="submit">Calculate Molarity</button>
+          <div id="molarity-result" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- QUIZ PAGE (P3) -->
+    <section class="page" id="quiz-page">
+      <div class="card quiz-card">
+        <h2>Element Quiz</h2>
+        <div id="quiz-container">
+          <!-- Rendered dynamically by quiz.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT PAGE -->
+    <section class="page" id="about-page">
+      <div class="card">
+        <h2>About Quantrix</h2>
+        <p class="about-text">
+          <b>Quantrix</b> is a student-centered chemistry platform designed to make middle school chemistry engaging, tactile, and intuitive.
+        </p>
+        <p class="about-text">
+          Features include an interactive 118-element periodic table with real-time frequency synthesis via the Web Audio API, element search, keyboard navigation, molarity calculator, element quiz, and solution concentration tools.
+        </p>
+        <p class="about-text">
+          Created with ❤️ by <b>Hadicha Ibragimova</b>, student at <b>MMT School</b>.
+        </p>
+        <span class="badge-tag">Class of 2026</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Quantrix &copy; Hadicha Ibragimova &mdash; MMT School &bull; Built with Vite
+  </footer>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

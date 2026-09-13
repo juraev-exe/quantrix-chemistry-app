@@ -1,0 +1,15 @@
+{
+  "studentName": "Hadicha Ibragimova",
+  "subject": "Chemistry",
+  "projectNumber": "P1",
+  "folderName": "Hadicha_Chemistry_P1",
+  "title": "Quantrix — Interactive Chemistry Learning Suite",
+  "status": "Completed",
+  "description": "Interactive chemistry learning platform featuring an 118-element periodic table with real-time audio synthesis, molarity and dilution calculator, solution concentration tools, and an interactive element quiz.",
+  "lastUpdated": "2026-09-12",
+  "tags": ["Periodic Table", "Solutions", "Molarity", "Audio Synthesis", "Quiz Challenge"],
+  "grade": "8th Grade",
+  "school": "MMT School",
+  "icon": "🧪",
+  "color": "emerald"
+}
