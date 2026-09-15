@@ -1,0 +1,2532 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Quantrix - Interactive chemistry learning application by Hadicha Ibragimova (MMT School) featuring a periodic table, audio synthesis, calculator, solution concentration, and element quiz." />
+  <title>Quantrix — Hadicha Ibragimova (Chemistry Class Presentation)</title>
+  
+  <!-- Typography & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       THEME TOKENS & DESIGN SYSTEM
+       ========================================================================== */
+    :root {
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+      --radius-card: 8px;
+      --radius-btn: 6px;
+      --radius-tile: 4px;
+
+      /* Periodic-table category colors */
+      --cat-alkali: #ff7084;
+      --cat-alkaline: #ffa154;
+      --cat-transition: #fbd343;
+      --cat-post-transition: #58db96;
+      --cat-metalloid: #24d1a9;
+      --cat-nonmetal: #38bdf8;
+      --cat-halogen: #60a5fa;
+      --cat-noble: #c084fc;
+      --cat-lanthanide: #d8b4fe;
+      --cat-actinide: #f472b6;
+    }
+
+    /* Dark theme */
+    :root[data-theme="dark"] {
+      --color-bg: #14181C;
+      --color-transparent: transparent;
+      --color-bg-glow: #1C232C;
+      --color-surface: #1D232B;
+      --color-surface-hover: #27303B;
+      --color-surface-raised: #20272F;
+      --color-overlay-soft: rgba(9, 13, 18, 0.35);
+      --color-hover-soft: rgba(255, 255, 255, 0.08);
+      --color-input-bg: #10151B;
+      --color-border: #2E3946;
+      --color-border-strong: #46566A;
+      --color-tile-border: rgba(10, 14, 20, 0.4);
+      --color-tile-ring: #ffffff;
+      --color-text: #EDF1F7;
+      --color-text-strong: #ffffff;
+      --color-heading: #C9DCF4;
+      --color-text-muted: #A2B1C6;
+      --color-text-dim: #6E7F97;
+      --color-text-on-accent: #05070F;
+      --color-tile-text: #0F172A;
+      --color-accent: #4FC3F7;
+      --color-accent-strong: #7DD3FC;
+      --color-accent-soft: rgba(79, 195, 247, 0.15);
+      --color-accent-2: #7E57FF;
+      --color-accent-3: #FF4FD8;
+      --color-accent-purple: #C084FC;
+      --color-accent-gradient: linear-gradient(135deg, #4fc3f7, #7e57ff, #ff4fd8);
+      --color-btn-gradient: linear-gradient(90deg, #4fc3f7, #8e6dff);
+      --color-focus-ring: #0C1014;
+      --color-focus-halo: #E2F2FF;
+      --color-success-bg: #143A24;
+      --color-success-border: #2e9e5b;
+      --color-success-text: #58db96;
+      --color-danger-bg: #3A1818;
+      --color-danger-border: #9A4A4A;
+      --color-danger-text: #FF9494;
+      --color-operator-bg: #251E47;
+      --color-operator-border: #4B398A;
+      --color-operator-text: #C5B4FF;
+      --color-quiz-strong: #FBD343;
+      --color-badge-bg: rgba(126, 87, 255, 0.2);
+      --color-badge-border: rgba(126, 87, 255, 0.4);
+      --color-badge-text: #C9BAFF;
+    }
+
+    /* Light theme */
+    :root[data-theme="light"] {
+      --color-bg: #F7F5F0;
+      --color-transparent: transparent;
+      --color-bg-glow: #FCFBF8;
+      --color-surface: #F0EDE5;
+      --color-surface-hover: #E3DFD5;
+      --color-surface-raised: #ECE8DF;
+      --color-overlay-soft: rgba(255, 255, 255, 0.55);
+      --color-hover-soft: rgba(0, 0, 0, 0.05);
+      --color-input-bg: #ffffff;
+      --color-border: #D9D3C6;
+      --color-border-strong: #B3AA9A;
+      --color-tile-border: rgba(10, 14, 20, 0.25);
+      --color-tile-ring: #ffffff;
+      --color-text: #22262C;
+      --color-text-strong: #0B0F14;
+      --color-heading: #24303E;
+      --color-text-muted: #5A646F;
+      --color-text-dim: #5F6B79;
+      --color-text-on-accent: #05070F;
+      --color-tile-text: #0F172A;
+      --color-accent: #0B7CC4;
+      --color-accent-strong: #0B57D0;
+      --color-accent-soft: rgba(11, 124, 196, 0.12);
+      --color-accent-2: #5B3FD4;
+      --color-accent-3: #D42F9F;
+      --color-accent-purple: #7A3FD0;
+      --color-accent-gradient: linear-gradient(135deg, #2fa8e0, #8e6dff, #ff70c8);
+      --color-btn-gradient: linear-gradient(90deg, #2fa8e0, #8e6dff);
+      --color-focus-ring: #062C66;
+      --color-focus-halo: #F7F5F0;
+      --color-success-bg: #E3F3E8;
+      --color-success-border: #2e9e5b;
+      --color-success-text: #166C40;
+      --color-danger-bg: #F7E0DF;
+      --color-danger-border: #B3261E;
+      --color-danger-text: #B3261E;
+      --color-operator-bg: #EAE4FA;
+      --color-operator-border: #8B78D6;
+      --color-operator-text: #4A3A8F;
+      --color-quiz-strong: #6E5600;
+      --color-badge-bg: #EDE7FB;
+      --color-badge-border: #A995E8;
+      --color-badge-text: #5B3FD4;
+    }
+
+    /* Base Reset */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: radial-gradient(ellipse at top, var(--color-bg-glow) 0%, var(--color-bg) 80%);
+      color: var(--color-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      html.theme-transition,
+      html.theme-transition body,
+      html.theme-transition body * {
+        transition: background-color 0.2s ease, color 0.2s ease;
+      }
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-focus-ring);
+      outline-offset: 2px;
+    }
+
+    /* Presentation Banner */
+    .presentation-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin: 0 0 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    :root[data-theme="light"] .presentation-header {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .banner-meta {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .banner-pill {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      font-family: var(--font-sans);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .banner-pill.student {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-text-strong);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    :root[data-theme="light"] .banner-pill.student {
+      background: rgba(0, 0, 0, 0.04);
+      color: #1f2937;
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .banner-pill.subject {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    :root[data-theme="light"] .banner-pill.subject {
+      background: #ecfdf5;
+      color: #059669;
+      border-color: #a7f3d0;
+    }
+
+    .banner-pill.tag {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+    :root[data-theme="light"] .banner-pill.tag {
+      background: #fffbeb;
+      color: #d97706;
+      border-color: #fde68a;
+    }
+
+    .banner-pill.school {
+      background: rgba(126, 87, 255, 0.15);
+      color: #c084fc;
+      border-color: rgba(126, 87, 255, 0.3);
+    }
+    :root[data-theme="light"] .banner-pill.school {
+      background: #f3e8ff;
+      color: #7e22ce;
+      border-color: #e9d5ff;
+    }
+
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .fullscreen-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-btn);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .fullscreen-btn:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    /* App Header */
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    h1.logo {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 800;
+      letter-spacing: 6px;
+      background: var(--color-accent-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin: 0 0 4px 0;
+    }
+
+    p.subtitle {
+      color: var(--color-text-muted);
+      font-size: 14px;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    /* Navigation */
+    #nav {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .nav-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      padding: 9px 18px;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-strong);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.active {
+      background: var(--color-btn-gradient);
+      color: var(--color-text-on-accent);
+      font-weight: 700;
+      border-color: transparent;
+    }
+
+    /* Main Containers */
+    main {
+      flex: 1;
+    }
+
+    .page {
+      display: none;
+      max-width: 1540px;
+      margin: 0 auto;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Periodic Table Poster */
+    .poster-container {
+      background: var(--color-surface-raised);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 24px 28px 20px 28px;
+      position: relative;
+    }
+
+    .poster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .poster-header-center {
+      flex: 1;
+      text-align: center;
+    }
+
+    .poster-title {
+      font-family: var(--font-serif);
+      font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+      font-weight: 700;
+      color: var(--color-text-strong);
+      margin: 0 0 4px 0;
+      letter-spacing: 0.5px;
+    }
+
+    .poster-subtitle {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .modern-sticker {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 154px;
+      padding: 9px 11px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-card);
+      transform: rotate(2deg);
+    }
+
+    .sticker-mark {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      color: var(--color-text-on-accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .sticker-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      color: var(--color-text);
+      text-align: left;
+      line-height: 1.1;
+    }
+
+    .sticker-copy strong {
+      font-size: 10px;
+      letter-spacing: 1.8px;
+    }
+
+    .sticker-copy small {
+      color: var(--color-text-muted);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .table-scroll-container {
+      overflow-x: auto;
+      padding-bottom: 14px;
+    }
+
+    .table-main-grid {
+      display: grid;
+      grid-template-columns: 46px repeat(18, minmax(64px, 1fr));
+      grid-template-rows: 28px repeat(7, minmax(78px, 1fr));
+      gap: 2px;
+      min-width: 1240px;
+    }
+
+    .axis-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      user-select: none;
+    }
+
+    .axis-corner {
+      flex-direction: column;
+      font-size: 10px;
+      line-height: 1.2;
+      color: var(--color-text-dim);
+      align-items: flex-start;
+      justify-content: center;
+      padding-left: 2px;
+    }
+
+    .axis-corner .group-arrow { margin-bottom: 2px; }
+
+    .axis-cell.group-header { font-size: 13px; color: var(--color-text-muted); }
+    .axis-cell.period-header { font-size: 15px; color: var(--color-text-muted); }
+
+    /* Element Cells */
+    .el {
+      border: 1px solid var(--color-tile-border);
+      border-radius: var(--radius-tile);
+      padding: 4px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--color-tile-text);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s, filter 0.2s;
+      user-select: none;
+      position: relative;
+    }
+
+    .el:hover {
+      transform: scale(1.18);
+      z-index: 40;
+      outline: 2px solid var(--color-tile-ring);
+    }
+
+    .el.selected {
+      outline: 3px solid var(--color-tile-ring);
+      z-index: 35;
+    }
+
+    .el.dimmed {
+      opacity: 0.25;
+      filter: grayscale(40%);
+      transform: scale(0.96);
+    }
+
+    .el.highlighted {
+      transform: scale(1.06);
+      z-index: 20;
+      outline: 1.5px solid var(--color-tile-ring);
+    }
+
+    .el:focus-visible {
+      outline: 3px solid var(--color-focus-ring);
+      outline-offset: 1px;
+      box-shadow: 0 0 0 3px var(--color-focus-halo);
+      z-index: 45;
+    }
+
+    .el-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      align-self: center;
+    }
+
+    .el-sym {
+      font-family: var(--font-sans);
+      font-size: 21px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 1px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .el-name {
+      font-family: var(--font-sans);
+      font-size: 8.5px;
+      font-weight: 600;
+      line-height: 1.1;
+      text-align: center;
+      max-width: 95%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .el-mass {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 500;
+      opacity: 0.85;
+      line-height: 1;
+    }
+
+    /* Placeholder Cells */
+    .el-placeholder {
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .el-placeholder .el-num { font-size: 10px; }
+    .el-placeholder .el-name-bold { font-size: 9.5px; font-weight: 700; }
+    .el-placeholder .el-star { font-size: 14px; font-weight: 800; line-height: 1; }
+
+    /* Category Classes */
+    .cat-alkali          { background-color: var(--cat-alkali) !important; }
+    .cat-alkaline        { background-color: var(--cat-alkaline) !important; }
+    .cat-transition      { background-color: var(--cat-transition) !important; }
+    .cat-post-transition { background-color: var(--cat-post-transition) !important; }
+    .cat-metalloid       { background-color: var(--cat-metalloid) !important; }
+    .cat-nonmetal        { background-color: var(--cat-nonmetal) !important; }
+    .cat-halogen         { background-color: var(--cat-halogen) !important; }
+    .cat-noble           { background-color: var(--cat-noble) !important; }
+    .cat-lanthanide      { background-color: var(--cat-lanthanide) !important; }
+    .cat-actinide        { background-color: var(--cat-actinide) !important; }
+
+    /* Center Box & Key Card */
+    .poster-center-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 16px;
+      background: var(--color-overlay-soft);
+      border-radius: var(--radius-btn);
+      gap: 20px;
+    }
+
+    .center-legend {
+      display: flex;
+      gap: 28px;
+    }
+
+    .legend-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: var(--radius-tile);
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .legend-item:hover {
+      background: var(--color-hover-soft);
+      transform: translateX(2px);
+    }
+
+    .legend-item.active {
+      background: var(--color-accent-soft);
+      outline: 1px solid var(--color-accent);
+    }
+
+    .legend-swatch {
+      width: 15px;
+      height: 15px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .legend-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+
+    .legend-item:hover .legend-label,
+    .legend-item.active .legend-label {
+      color: var(--color-text);
+      font-weight: 700;
+    }
+
+    .center-key-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--color-input-bg);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-card);
+      padding: 12px 18px;
+    }
+
+    .key-callouts {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 110px;
+    }
+
+    .key-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+    }
+
+    .key-row .arrow {
+      color: var(--color-accent-strong);
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .key-tile-wrapper { flex-shrink: 0; }
+
+    .key-tile {
+      width: 86px;
+      height: 112px;
+      border-radius: var(--radius-tile);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 4px;
+      color: var(--color-tile-text);
+      border: 1px solid var(--color-tile-ring);
+      transition: background-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .key-tile-num {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .key-tile-sym {
+      font-family: var(--font-sans);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .key-tile-name {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+      max-width: 95%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .key-tile-mass {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .key-tile-animate {
+      animation: tilePop 0.25s ease-out;
+    }
+
+    @keyframes tilePop {
+      0% { transform: scale(0.92); }
+      50% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+
+    /* f-block */
+    .table-fblock-container {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 1240px;
+    }
+
+    .fblock-row {
+      display: grid;
+      grid-template-columns: 200px repeat(15, minmax(64px, 1fr));
+      gap: 2px;
+      align-items: stretch;
+    }
+
+    .fblock-label {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-end;
+      padding-right: 18px;
+      text-align: right;
+      user-select: none;
+    }
+
+    .fblock-label-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .fblock-label-range {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      margin-top: 1px;
+    }
+
+    .poster-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-text-dim);
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .poster-footer-left,
+    .poster-footer-right {
+      display: flex;
+      gap: 12px;
+    }
+
+    .poster-footer-center {
+      letter-spacing: 3px;
+      color: var(--color-text-muted);
+    }
+
+    /* Toolbar & Search */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 200px;
+      background: var(--color-input-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-btn);
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-wrapper:focus-within {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-soft);
+    }
+
+    .search-icon {
+      font-size: 15px;
+      flex-shrink: 0;
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+
+    .element-search {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--color-text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 0;
+    }
+
+    .element-search::placeholder { color: var(--color-text-dim); }
+    .element-search::-webkit-search-cancel-button { display: none; }
+
+    .search-clear {
+      background: none;
+      border: none;
+      color: var(--color-text-dim);
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px 6px;
+      border-radius: var(--radius-tile);
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .search-clear:hover {
+      color: var(--color-text);
+      background: var(--color-hover-soft);
+    }
+
+    .mute-btn {
+      white-space: nowrap;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      padding: 10px 16px;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .mute-btn:hover { background: var(--color-surface-hover); }
+
+    .mute-btn--muted {
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
+      color: var(--color-danger-text);
+    }
+
+    .el.search-match {
+      outline: 2.5px solid var(--color-tile-ring);
+      z-index: 25;
+      transform: scale(1.1);
+    }
+
+    .el.search-dim {
+      opacity: 0.2;
+      filter: grayscale(60%);
+    }
+
+    /* Cards */
+    .card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 30px;
+    }
+
+    .card h2 {
+      margin: 0 0 20px 0;
+      text-align: center;
+      font-size: 22px;
+      color: var(--color-heading);
+    }
+
+    /* Calculator */
+    #calc-display {
+      background: var(--color-input-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-btn);
+      color: var(--color-text);
+      font-size: 30px;
+      font-weight: 600;
+      text-align: right;
+      padding: 16px;
+      margin-bottom: 16px;
+      width: 100%;
+      font-family: var(--font-mono);
+    }
+
+    #calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    #calc-grid button {
+      padding: 16px 0;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: var(--radius-btn);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    #calc-grid button:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-strong);
+      transform: translateY(-1px);
+    }
+
+    #calc-grid button.op {
+      background: var(--color-operator-bg);
+      border-color: var(--color-operator-border);
+      color: var(--color-operator-text);
+    }
+
+    #calc-grid button.eq {
+      background: var(--color-btn-gradient);
+      color: var(--color-text-on-accent);
+      font-weight: 800;
+      border-color: transparent;
+    }
+
+    #calc-grid button.clear {
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
+      color: var(--color-danger-text);
+    }
+
+    /* Concentration Form */
+    .field { margin-bottom: 18px; }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--color-text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-btn);
+      border: 1px solid var(--color-border);
+      background: var(--color-input-bg);
+      color: var(--color-text);
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-soft);
+    }
+
+    .field select {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: var(--radius-btn);
+      border: 1px solid var(--color-border);
+      background: var(--color-input-bg);
+      color: var(--color-text);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field select:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-soft);
+    }
+
+    #conc-btn, #molarity-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius-btn);
+      border: none;
+      background: var(--color-btn-gradient);
+      color: var(--color-text-on-accent);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 8px;
+      transition: transform 0.15s;
+      font-family: inherit;
+    }
+
+    #conc-btn:hover, #molarity-btn:hover { transform: translateY(-1px); }
+
+    #conc-result, #molarity-result {
+      margin-top: 20px;
+      text-align: center;
+      min-height: 30px;
+    }
+
+    #conc-result .result-number {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--color-accent);
+      margin-bottom: 4px;
+    }
+
+    #molarity-result .result-number {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--color-accent-purple);
+      margin-bottom: 4px;
+    }
+
+    .result-desc {
+      color: var(--color-text-muted);
+      font-size: 14px;
+    }
+
+    .error {
+      color: var(--color-danger-text);
+      font-size: 14px;
+    }
+
+    /* Quiz */
+    .quiz-card {
+      max-width: 560px;
+      background: var(--color-surface-raised);
+    }
+
+    .quiz-score {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-accent);
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .quiz-question {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-text);
+      min-height: 52px;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .quiz-question strong { color: var(--color-quiz-strong); }
+
+    .quiz-choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .quiz-choice-btn {
+      padding: 14px 12px;
+      border-radius: var(--radius-btn);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .quiz-choice-btn:hover:not(:disabled) {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-strong);
+      transform: translateY(-1px);
+    }
+
+    .quiz-choice-btn.quiz-correct {
+      background: var(--color-success-bg);
+      border-color: var(--color-success-border);
+      color: var(--color-success-text);
+    }
+
+    .quiz-choice-btn.quiz-wrong {
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger-border);
+      color: var(--color-danger-text);
+    }
+
+    .quiz-choice-btn:disabled { cursor: default; }
+
+    .quiz-feedback {
+      min-height: 28px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .quiz-feedback--correct { color: var(--color-success-text); }
+    .quiz-feedback--wrong   { color: var(--color-danger-text); }
+
+    .quiz-next-btn {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      border-radius: var(--radius-btn);
+      border: none;
+      background: var(--color-btn-gradient);
+      color: var(--color-text-on-accent);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      font-family: inherit;
+      transition: transform 0.15s;
+      margin-bottom: 10px;
+    }
+
+    .quiz-next-btn:hover { transform: translateY(-1px); }
+
+    .quiz-reset-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border-radius: var(--radius-btn);
+      border: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .quiz-reset-btn:hover { color: var(--color-danger-text); border-color: var(--color-danger-border); }
+
+    /* About */
+    .about-text {
+      line-height: 1.8;
+      color: var(--color-text-muted);
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+
+    .about-text b { color: var(--color-accent-strong); }
+
+    .badge-tag {
+      display: inline-block;
+      background: var(--color-badge-bg);
+      border: 1px solid var(--color-badge-border);
+      color: var(--color-badge-text);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--color-text-dim);
+      font-size: 13px;
+      margin-top: 30px;
+      padding: 16px 0;
+      border-top: 1px solid var(--color-border);
+    }
+
+    @media (max-width: 860px) {
+      .poster-container { padding: 18px 16px 16px; }
+      .poster-header { align-items: center; }
+      .modern-sticker { display: none; }
+      .poster-title { font-size: clamp(2rem, 8vw, 2.8rem); }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 10px 6px; }
+      #nav { gap: 6px; }
+      .nav-btn { flex: 1 1 30%; justify-content: center; padding: 9px 8px; font-size: 12px; }
+      .poster-container { padding: 16px 10px 12px; }
+      .poster-title { font-size: 2rem; }
+      .poster-subtitle { font-size: 9px; letter-spacing: 2px; }
+      .table-toolbar { gap: 8px; }
+      .search-wrapper { min-width: 100%; }
+      .mute-btn { flex: 1; padding-inline: 8px; }
+      .card { padding: 22px 16px; }
+      .quiz-choices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Presentation Header with Student Identity & Controls -->
+  <aside class="presentation-header" aria-label="Student Information">
+    <div class="banner-meta">
+      <span class="banner-pill student">👤 <strong>Hadicha Ibragimova</strong></span>
+      <span class="banner-pill subject">🧪 Chemistry</span>
+      <span class="banner-pill tag">Period 1</span>
+      <span class="banner-pill school">🏫 MMT School</span>
+    </div>
+    <div class="banner-actions">
+      <button id="fullscreen-toggle" class="fullscreen-btn" type="button" title="Toggle Fullscreen Presentation Mode">
+        ⛶ Presentation Mode
+      </button>
+    </div>
+  </aside>
+
+  <!-- Title Header -->
+  <header>
+    <h1 class="logo">QUANTRIX</h1>
+    <p class="subtitle">Interactive Chemistry Learning Suite &bull; Class Presentation</p>
+  </header>
+
+  <!-- Navigation -->
+  <nav id="nav" aria-label="Main Navigation">
+    <button class="nav-btn active" data-page="table-page" type="button">
+      <span>⚛️</span> Periodic Table
+    </button>
+    <button class="nav-btn" data-page="calc-page" type="button">
+      <span>🧮</span> Calculator
+    </button>
+    <button class="nav-btn" data-page="conc-page" type="button">
+      <span>🧪</span> Concentration
+    </button>
+    <button class="nav-btn" data-page="quiz-page" type="button">
+      <span>🎓</span> Quiz Challenge
+    </button>
+    <button class="nav-btn" data-page="about-page" type="button">
+      <span>ℹ️</span> About Project
+    </button>
+  </nav>
+
+  <main>
+    <!-- PERIODIC TABLE PAGE -->
+    <section class="page active" id="table-page">
+      <div class="poster-container">
+        <!-- Top Poster Header -->
+        <div class="poster-header">
+          <div class="poster-header-center">
+            <h2 class="poster-title">Periodic Table of the Elements</h2>
+            <div class="poster-subtitle">CHEMICAL ELEMENTS IN ORDER OF ATOMIC NUMBER</div>
+          </div>
+          <div class="modern-sticker" aria-label="Quantrix chemistry lab note">
+            <span class="sticker-mark">QX</span>
+            <span class="sticker-copy">
+              <strong>LAB NOTE</strong>
+              <small>HADICHA / 2026</small>
+            </span>
+          </div>
+        </div>
+
+        <!-- Toolbar: Search + Sound + Theme -->
+        <div class="table-toolbar">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="search"
+              id="element-search"
+              class="element-search"
+              placeholder="Search element name, symbol, or number…"
+              autocomplete="off"
+              aria-label="Search periodic table"
+            />
+            <button id="search-clear" class="search-clear" type="button" aria-label="Clear search" title="Clear">✕</button>
+          </div>
+          <button id="mute-toggle" class="mute-btn" type="button" aria-label="Toggle element sound">🔊 Sound On</button>
+          <button id="theme-toggle" class="mute-btn" type="button">☀️ Light</button>
+        </div>
+
+        <!-- Scrollable Table Board -->
+        <div class="table-scroll-container">
+          <div id="table-main" class="table-main-grid" role="region" aria-label="Periodic Table of Elements">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- Bottom Lanthanides & Actinides (f-block) -->
+          <div id="table-fblock" class="table-fblock-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Bottom Poster Slogans -->
+        <div class="poster-footer">
+          <div class="poster-footer-left">
+            <span>KNOW</span>
+            <span>EXPLORE</span>
+            <span>DISCOVER</span>
+          </div>
+          <div class="poster-footer-center">
+            ELEMENTS FOR A BETTER TOMORROW
+          </div>
+          <div class="poster-footer-right">
+            <span>A CLEANER</span>
+            <span>GREENER</span>
+            <span>BRIGHTER PLANET</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALCULATOR PAGE -->
+    <section class="page" id="calc-page">
+      <div class="card">
+        <h2>Scientific &amp; Arithmetic Calculator</h2>
+        <input id="calc-display" type="text" value="0" readonly aria-label="Calculator screen" />
+        <div id="calc-grid"></div>
+      </div>
+    </section>
+
+    <!-- CONCENTRATION PAGE -->
+    <section class="page" id="conc-page">
+      <!-- Mass / Volume % -->
+      <div class="card">
+        <h2>Solution Concentration (m/v %)</h2>
+        <form id="conc-form" onsubmit="return false;">
+          <div class="field">
+            <label for="mass">Solute Mass (grams)</label>
+            <input type="number" id="mass" placeholder="e.g. 15" step="any" min="0" required />
+          </div>
+          <div class="field">
+            <label for="volume">Total Solution Volume (mL)</label>
+            <input type="number" id="volume" placeholder="e.g. 250" step="any" min="0.001" required />
+          </div>
+          <button id="conc-btn" type="submit">Calculate Concentration %</button>
+          <div id="conc-result" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <!-- Molarity Calculator -->
+      <div class="card" style="margin-top: 24px;">
+        <h2>Molarity Calculator (mol/L)</h2>
+        <form id="molarity-form" onsubmit="return false;">
+          <div class="field">
+            <label for="mol-solute-mass">Solute Mass (grams)</label>
+            <input type="number" id="mol-solute-mass" placeholder="e.g. 5.85" step="any" min="0" />
+          </div>
+          <div class="field">
+            <label for="mol-element-select">Auto-fill Molar Mass from Element</label>
+            <select id="mol-element-select"></select>
+          </div>
+          <div class="field">
+            <label for="mol-molar-mass">Molar Mass (g/mol) — edit manually if needed</label>
+            <input type="number" id="mol-molar-mass" placeholder="e.g. 58.44" step="any" min="0.001" />
+          </div>
+          <div class="field">
+            <label for="mol-volume-liters">Solution Volume (liters)</label>
+            <input type="number" id="mol-volume-liters" placeholder="e.g. 1.0" step="any" min="0.0001" />
+          </div>
+          <button id="molarity-btn" type="submit">Calculate Molarity</button>
+          <div id="molarity-result" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- QUIZ PAGE -->
+    <section class="page" id="quiz-page">
+      <div class="card quiz-card">
+        <h2>Element Quiz Challenge</h2>
+        <div id="quiz-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT PAGE -->
+    <section class="page" id="about-page">
+      <div class="card">
+        <h2>About Quantrix</h2>
+        <p class="about-text">
+          <b>Quantrix</b> is a student-centered chemistry platform designed to make middle school chemistry engaging, tactile, and intuitive.
+        </p>
+        <p class="about-text">
+          Features include an interactive 118-element periodic table with real-time frequency audio synthesis, smart element search, keyboard navigation, molarity calculator, element quiz challenge, and solution concentration tools.
+        </p>
+        <p class="about-text">
+          Created with ❤️ by <b>Hadicha Ibragimova</b>, student at <b>MMT School</b>.
+        </p>
+        <span class="badge-tag">Class of 2026 &bull; Grade 8</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Quantrix &copy; Hadicha Ibragimova &mdash; MMT School &bull; Ready for Class Presentation
+  </footer>
+
+  <!-- ==========================================================================
+       ALL LOGIC & DATA INLINED FOR 100% STANDALONE OFFLINE USE
+       ========================================================================== -->
+  <script>
+    (function () {
+      // ── DATA: All 118 Elements ─────────────────────────────────────────────
+      const elements = [
+        { n: 1, sym: "H", name: "Hydrogen", mass: "1.008", cat: "nonmetal", row: 1, col: 1 },
+        { n: 2, sym: "He", name: "Helium", mass: "4.003", cat: "noble-gas", row: 1, col: 18 },
+        { n: 3, sym: "Li", name: "Lithium", mass: "6.94", cat: "alkali-metal", row: 2, col: 1 },
+        { n: 4, sym: "Be", name: "Beryllium", mass: "9.012", cat: "alkaline-earth", row: 2, col: 2 },
+        { n: 5, sym: "B", name: "Boron", mass: "10.81", cat: "metalloid", row: 2, col: 13 },
+        { n: 6, sym: "C", name: "Carbon", mass: "12.011", cat: "nonmetal", row: 2, col: 14 },
+        { n: 7, sym: "N", name: "Nitrogen", mass: "14.007", cat: "nonmetal", row: 2, col: 15 },
+        { n: 8, sym: "O", name: "Oxygen", mass: "15.999", cat: "nonmetal", row: 2, col: 16 },
+        { n: 9, sym: "F", name: "Fluorine", mass: "18.998", cat: "halogen", row: 2, col: 17 },
+        { n: 10, sym: "Ne", name: "Neon", mass: "20.180", cat: "noble-gas", row: 2, col: 18 },
+        { n: 11, sym: "Na", name: "Sodium", mass: "22.990", cat: "alkali-metal", row: 3, col: 1 },
+        { n: 12, sym: "Mg", name: "Magnesium", mass: "24.305", cat: "alkaline-earth", row: 3, col: 2 },
+        { n: 13, sym: "Al", name: "Aluminium", mass: "26.982", cat: "post-transition", row: 3, col: 13 },
+        { n: 14, sym: "Si", name: "Silicon", mass: "28.085", cat: "metalloid", row: 3, col: 14 },
+        { n: 15, sym: "P", name: "Phosphorus", mass: "30.974", cat: "nonmetal", row: 3, col: 15 },
+        { n: 16, sym: "S", name: "Sulfur", mass: "32.06", cat: "nonmetal", row: 3, col: 16 },
+        { n: 17, sym: "Cl", name: "Chlorine", mass: "35.45", cat: "halogen", row: 3, col: 17 },
+        { n: 18, sym: "Ar", name: "Argon", mass: "39.948", cat: "noble-gas", row: 3, col: 18 },
+        { n: 19, sym: "K", name: "Potassium", mass: "39.098", cat: "alkali-metal", row: 4, col: 1 },
+        { n: 20, sym: "Ca", name: "Calcium", mass: "40.078", cat: "alkaline-earth", row: 4, col: 2 },
+        { n: 21, sym: "Sc", name: "Scandium", mass: "44.956", cat: "transition-metal", row: 4, col: 3 },
+        { n: 22, sym: "Ti", name: "Titanium", mass: "47.867", cat: "transition-metal", row: 4, col: 4 },
+        { n: 23, sym: "V", name: "Vanadium", mass: "50.942", cat: "transition-metal", row: 4, col: 5 },
+        { n: 24, sym: "Cr", name: "Chromium", mass: "51.996", cat: "transition-metal", row: 4, col: 6 },
+        { n: 25, sym: "Mn", name: "Manganese", mass: "54.938", cat: "transition-metal", row: 4, col: 7 },
+        { n: 26, sym: "Fe", name: "Iron", mass: "55.845", cat: "transition-metal", row: 4, col: 8 },
+        { n: 27, sym: "Co", name: "Cobalt", mass: "58.933", cat: "transition-metal", row: 4, col: 9 },
+        { n: 28, sym: "Ni", name: "Nickel", mass: "58.693", cat: "transition-metal", row: 4, col: 10 },
+        { n: 29, sym: "Cu", name: "Copper", mass: "63.546", cat: "transition-metal", row: 4, col: 11 },
+        { n: 30, sym: "Zn", name: "Zinc", mass: "65.38", cat: "transition-metal", row: 4, col: 12 },
+        { n: 31, sym: "Ga", name: "Gallium", mass: "69.723", cat: "post-transition", row: 4, col: 13 },
+        { n: 32, sym: "Ge", name: "Germanium", mass: "72.630", cat: "metalloid", row: 4, col: 14 },
+        { n: 33, sym: "As", name: "Arsenic", mass: "74.922", cat: "metalloid", row: 4, col: 15 },
+        { n: 34, sym: "Se", name: "Selenium", mass: "78.971", cat: "nonmetal", row: 4, col: 16 },
+        { n: 35, sym: "Br", name: "Bromine", mass: "79.904", cat: "halogen", row: 4, col: 17 },
+        { n: 36, sym: "Kr", name: "Krypton", mass: "83.798", cat: "noble-gas", row: 4, col: 18 },
+        { n: 37, sym: "Rb", name: "Rubidium", mass: "85.468", cat: "alkali-metal", row: 5, col: 1 },
+        { n: 38, sym: "Sr", name: "Strontium", mass: "87.62", cat: "alkaline-earth", row: 5, col: 2 },
+        { n: 39, sym: "Y", name: "Yttrium", mass: "88.906", cat: "transition-metal", row: 5, col: 3 },
+        { n: 40, sym: "Zr", name: "Zirconium", mass: "91.224", cat: "transition-metal", row: 5, col: 4 },
+        { n: 41, sym: "Nb", name: "Niobium", mass: "92.906", cat: "transition-metal", row: 5, col: 5 },
+        { n: 42, sym: "Mo", name: "Molybdenum", mass: "95.95", cat: "transition-metal", row: 5, col: 6 },
+        { n: 43, sym: "Tc", name: "Technetium", mass: "(98)", cat: "transition-metal", row: 5, col: 7 },
+        { n: 44, sym: "Ru", name: "Ruthenium", mass: "101.07", cat: "transition-metal", row: 5, col: 8 },
+        { n: 45, sym: "Rh", name: "Rhodium", mass: "102.91", cat: "transition-metal", row: 5, col: 9 },
+        { n: 46, sym: "Pd", name: "Palladium", mass: "106.42", cat: "transition-metal", row: 5, col: 10 },
+        { n: 47, sym: "Ag", name: "Silver", mass: "107.87", cat: "transition-metal", row: 5, col: 11 },
+        { n: 48, sym: "Cd", name: "Cadmium", mass: "112.41", cat: "transition-metal", row: 5, col: 12 },
+        { n: 49, sym: "In", name: "Indium", mass: "114.82", cat: "post-transition", row: 5, col: 13 },
+        { n: 50, sym: "Sn", name: "Tin", mass: "118.71", cat: "post-transition", row: 5, col: 14 },
+        { n: 51, sym: "Sb", name: "Antimony", mass: "121.76", cat: "metalloid", row: 5, col: 15 },
+        { n: 52, sym: "Te", name: "Tellurium", mass: "127.60", cat: "metalloid", row: 5, col: 16 },
+        { n: 53, sym: "I", name: "Iodine", mass: "126.90", cat: "halogen", row: 5, col: 17 },
+        { n: 54, sym: "Xe", name: "Xenon", mass: "131.29", cat: "noble-gas", row: 5, col: 18 },
+        { n: 55, sym: "Cs", name: "Caesium", mass: "132.91", cat: "alkali-metal", row: 6, col: 1 },
+        { n: 56, sym: "Ba", name: "Barium", mass: "137.33", cat: "alkaline-earth", row: 6, col: 2 },
+        { n: 57, sym: "La", name: "Lanthanum", mass: "138.91", cat: "lanthanide", row: 9, col: 3 },
+        { n: 58, sym: "Ce", name: "Cerium", mass: "140.12", cat: "lanthanide", row: 9, col: 4 },
+        { n: 59, sym: "Pr", name: "Praseodymium", mass: "140.91", cat: "lanthanide", row: 9, col: 5 },
+        { n: 60, sym: "Nd", name: "Neodymium", mass: "144.24", cat: "lanthanide", row: 9, col: 6 },
+        { n: 61, sym: "Pm", name: "Promethium", mass: "(145)", cat: "lanthanide", row: 9, col: 7 },
+        { n: 62, sym: "Sm", name: "Samarium", mass: "150.36", cat: "lanthanide", row: 9, col: 8 },
+        { n: 63, sym: "Eu", name: "Europium", mass: "151.96", cat: "lanthanide", row: 9, col: 9 },
+        { n: 64, sym: "Gd", name: "Gadolinium", mass: "157.25", cat: "lanthanide", row: 9, col: 10 },
+        { n: 65, sym: "Tb", name: "Terbium", mass: "158.93", cat: "lanthanide", row: 9, col: 11 },
+        { n: 66, sym: "Dy", name: "Dysprosium", mass: "162.50", cat: "lanthanide", row: 9, col: 12 },
+        { n: 67, sym: "Ho", name: "Holmium", mass: "164.93", cat: "lanthanide", row: 9, col: 13 },
+        { n: 68, sym: "Er", name: "Erbium", mass: "167.26", cat: "lanthanide", row: 9, col: 14 },
+        { n: 69, sym: "Tm", name: "Thulium", mass: "168.93", cat: "lanthanide", row: 9, col: 15 },
+        { n: 70, sym: "Yb", name: "Ytterbium", mass: "173.05", cat: "lanthanide", row: 9, col: 16 },
+        { n: 71, sym: "Lu", name: "Lutetium", mass: "174.97", cat: "lanthanide", row: 9, col: 17 },
+        { n: 72, sym: "Hf", name: "Hafnium", mass: "178.49", cat: "transition-metal", row: 6, col: 4 },
+        { n: 73, sym: "Ta", name: "Tantalum", mass: "180.95", cat: "transition-metal", row: 6, col: 5 },
+        { n: 74, sym: "W", name: "Tungsten", mass: "183.84", cat: "transition-metal", row: 6, col: 6 },
+        { n: 75, sym: "Re", name: "Rhenium", mass: "186.21", cat: "transition-metal", row: 6, col: 7 },
+        { n: 76, sym: "Os", name: "Osmium", mass: "190.23", cat: "transition-metal", row: 6, col: 8 },
+        { n: 77, sym: "Ir", name: "Iridium", mass: "192.22", cat: "transition-metal", row: 6, col: 9 },
+        { n: 78, sym: "Pt", name: "Platinum", mass: "195.08", cat: "transition-metal", row: 6, col: 10 },
+        { n: 79, sym: "Au", name: "Gold", mass: "196.97", cat: "transition-metal", row: 6, col: 11 },
+        { n: 80, sym: "Hg", name: "Mercury", mass: "200.59", cat: "transition-metal", row: 6, col: 12 },
+        { n: 81, sym: "Tl", name: "Thallium", mass: "204.38", cat: "post-transition", row: 6, col: 13 },
+        { n: 82, sym: "Pb", name: "Lead", mass: "207.2", cat: "post-transition", row: 6, col: 14 },
+        { n: 83, sym: "Bi", name: "Bismuth", mass: "208.98", cat: "post-transition", row: 6, col: 15 },
+        { n: 84, sym: "Po", name: "Polonium", mass: "(209)", cat: "post-transition", row: 6, col: 16 },
+        { n: 85, sym: "At", name: "Astatine", mass: "(210)", cat: "halogen", row: 6, col: 17 },
+        { n: 86, sym: "Rn", name: "Radon", mass: "(222)", cat: "noble-gas", row: 6, col: 18 },
+        { n: 87, sym: "Fr", name: "Francium", mass: "(223)", cat: "alkali-metal", row: 7, col: 1 },
+        { n: 88, sym: "Ra", name: "Radium", mass: "(226)", cat: "alkaline-earth", row: 7, col: 2 },
+        { n: 89, sym: "Ac", name: "Actinium", mass: "(227)", cat: "actinide", row: 10, col: 3 },
+        { n: 90, sym: "Th", name: "Thorium", mass: "232.04", cat: "actinide", row: 10, col: 4 },
+        { n: 91, sym: "Pa", name: "Protactinium", mass: "231.04", cat: "actinide", row: 10, col: 5 },
+        { n: 92, sym: "U", name: "Uranium", mass: "238.03", cat: "actinide", row: 10, col: 6 },
+        { n: 93, sym: "Np", name: "Neptunium", mass: "(237)", cat: "actinide", row: 10, col: 7 },
+        { n: 94, sym: "Pu", name: "Plutonium", mass: "(244)", cat: "actinide", row: 10, col: 8 },
+        { n: 95, sym: "Am", name: "Americium", mass: "(243)", cat: "actinide", row: 10, col: 9 },
+        { n: 96, sym: "Cm", name: "Curium", mass: "(247)", cat: "actinide", row: 10, col: 10 },
+        { n: 97, sym: "Bk", name: "Berkelium", mass: "(247)", cat: "actinide", row: 10, col: 11 },
+        { n: 98, sym: "Cf", name: "Californium", mass: "(251)", cat: "actinide", row: 10, col: 12 },
+        { n: 99, sym: "Es", name: "Einsteinium", mass: "(252)", cat: "actinide", row: 10, col: 13 },
+        { n: 100, sym: "Fm", name: "Fermium", mass: "(257)", cat: "actinide", row: 10, col: 14 },
+        { n: 101, sym: "Md", name: "Mendelevium", mass: "(258)", cat: "actinide", row: 10, col: 15 },
+        { n: 102, sym: "No", name: "Nobelium", mass: "(259)", cat: "actinide", row: 10, col: 16 },
+        { n: 103, sym: "Lr", name: "Lawrencium", mass: "(266)", cat: "actinide", row: 10, col: 17 },
+        { n: 104, sym: "Rf", name: "Rutherfordium", mass: "(267)", cat: "transition-metal", row: 7, col: 4 },
+        { n: 105, sym: "Db", name: "Dubnium", mass: "(268)", cat: "transition-metal", row: 7, col: 5 },
+        { n: 106, sym: "Sg", name: "Seaborgium", mass: "(269)", cat: "transition-metal", row: 7, col: 6 },
+        { n: 107, sym: "Bh", name: "Bohrium", mass: "(270)", cat: "transition-metal", row: 7, col: 7 },
+        { n: 108, sym: "Hs", name: "Hassium", mass: "(269)", cat: "transition-metal", row: 7, col: 8 },
+        { n: 109, sym: "Mt", name: "Meitnerium", mass: "(278)", cat: "transition-metal", row: 7, col: 9 },
+        { n: 110, sym: "Ds", name: "Darmstadtium", mass: "(281)", cat: "transition-metal", row: 7, col: 10 },
+        { n: 111, sym: "Rg", name: "Roentgenium", mass: "(282)", cat: "transition-metal", row: 7, col: 11 },
+        { n: 112, sym: "Cn", name: "Copernicium", mass: "(285)", cat: "transition-metal", row: 7, col: 12 },
+        { n: 113, sym: "Nh", name: "Nihonium", mass: "(286)", cat: "post-transition", row: 7, col: 13 },
+        { n: 114, sym: "Fl", name: "Flerovium", mass: "(289)", cat: "post-transition", row: 7, col: 14 },
+        { n: 115, sym: "Mc", name: "Moscovium", mass: "(290)", cat: "post-transition", row: 7, col: 15 },
+        { n: 116, sym: "Lv", name: "Livermorium", mass: "(293)", cat: "post-transition", row: 7, col: 16 },
+        { n: 117, sym: "Ts", name: "Tennessine", mass: "(294)", cat: "halogen", row: 7, col: 17 },
+        { n: 118, sym: "Og", name: "Oganesson", mass: "(294)", cat: "noble-gas", row: 7, col: 18 }
+      ];
+
+      const categories = [
+        { id: 'alkali-metal',     label: 'Alkali metals',           class: 'cat-alkali' },
+        { id: 'alkaline-earth',   label: 'Alkaline earth metals',   class: 'cat-alkaline' },
+        { id: 'transition-metal', label: 'Transition metals',       class: 'cat-transition' },
+        { id: 'post-transition',  label: 'Post-transition metals',  class: 'cat-post-transition' },
+        { id: 'metalloid',        label: 'Metalloids',              class: 'cat-metalloid' },
+        { id: 'nonmetal',         label: 'Nonmetals',               class: 'cat-nonmetal' },
+        { id: 'halogen',          label: 'Halogens',                class: 'cat-halogen' },
+        { id: 'noble-gas',        label: 'Noble gases',             class: 'cat-noble' },
+        { id: 'lanthanide',       label: 'Lanthanides',             class: 'cat-lanthanide' },
+        { id: 'actinide',         label: 'Actinides',               class: 'cat-actinide' }
+      ];
+
+      function getCategoryClass(cat) {
+        const match = categories.find(c => c.id === cat);
+        return match ? match.class : '';
+      }
+
+      // ── AUDIO MODULE ────────────────────────────────────────────────────────
+      const MUTE_KEY = 'quantrix_muted';
+      let _audioCtx = null;
+
+      function getAudioCtx() {
+        if (!_audioCtx) {
+          const Ctor = window.AudioContext || window.webkitAudioContext;
+          if (Ctor) _audioCtx = new Ctor();
+        }
+        if (_audioCtx && _audioCtx.state === 'suspended') {
+          _audioCtx.resume();
+        }
+        return _audioCtx;
+      }
+
+      function isMuted() {
+        return localStorage.getItem(MUTE_KEY) === '1';
+      }
+
+      function toggleMute() {
+        const next = !isMuted();
+        localStorage.setItem(MUTE_KEY, next ? '1' : '0');
+        return next;
+      }
+
+      function playElementSound(atomicNumber) {
+        if (isMuted()) return;
+        try {
+          const ctx = getAudioCtx();
+          if (!ctx) return;
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = 220 + atomicNumber * 4;
+          const t = ctx.currentTime;
+          gain.gain.setValueAtTime(0.12, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.35);
+        } catch (err) {
+          console.warn('AudioContext error:', err);
+        }
+      }
+
+      // ── THEME MODULE ────────────────────────────────────────────────────────
+      const THEME_KEY = 'quantrix-theme';
+      const root = document.documentElement;
+
+      function getSystemTheme() {
+        return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+      }
+
+      function getStoredTheme() {
+        const stored = localStorage.getItem(THEME_KEY);
+        return (stored === 'dark' || stored === 'light') ? stored : null;
+      }
+
+      function getTheme() {
+        return getStoredTheme() || getSystemTheme();
+      }
+
+      function applyTheme(theme) {
+        root.dataset.theme = theme === 'light' ? 'light' : 'dark';
+      }
+
+      function toggleTheme() {
+        const next = getTheme() === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme(next);
+        return next;
+      }
+
+      function initTheme() {
+        applyTheme(getTheme());
+        const btn = document.getElementById('theme-toggle');
+        if (!btn) return;
+
+        function syncLabel() {
+          const next = getTheme() === 'dark' ? 'light' : 'dark';
+          btn.textContent = next === 'dark' ? '🌙 Dark' : '☀️ Light';
+          btn.setAttribute('aria-label', `Switch to ${next} theme`);
+          btn.setAttribute('title', `Switch to ${next} theme`);
+        }
+
+        syncLabel();
+        btn.addEventListener('click', () => {
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            root.classList.add('theme-transition');
+            window.setTimeout(() => root.classList.remove('theme-transition'), 220);
+          }
+          toggleTheme();
+          syncLabel();
+        });
+      }
+
+      // ── PERIODIC TABLE MODULE ────────────────────────────────────────────────
+      let navGrid = [];
+      let focusedIndex = -1;
+
+      function initPeriodicTable() {
+        const tableMain   = document.getElementById("table-main");
+        const tableFblock = document.getElementById("table-fblock");
+        if (!tableMain || !tableFblock) return;
+
+        tableMain.innerHTML = '';
+        tableFblock.innerHTML = '';
+        navGrid = [];
+        focusedIndex = -1;
+
+        // Corner Axis
+        const axisCorner = document.createElement("div");
+        axisCorner.className = "axis-cell axis-corner";
+        axisCorner.style.gridRow    = "1";
+        axisCorner.style.gridColumn = "1";
+        axisCorner.innerHTML = `
+          <span class="group-arrow">Group &rarr;</span>
+          <span class="period-arrow">Period &darr;</span>
+        `;
+        tableMain.appendChild(axisCorner);
+
+        // Group headers 1–18
+        for (let g = 1; g <= 18; g++) {
+          const gCell = document.createElement("div");
+          gCell.className = "axis-cell group-header";
+          gCell.style.gridRow = "1";
+          gCell.style.gridColumn = String(g + 1);
+          gCell.textContent = g;
+          tableMain.appendChild(gCell);
+        }
+
+        // Period headers 1–7
+        for (let p = 1; p <= 7; p++) {
+          const pCell = document.createElement("div");
+          pCell.className = "axis-cell period-header";
+          pCell.style.gridRow = String(p + 1);
+          pCell.style.gridColumn = "1";
+          pCell.textContent = p;
+          tableMain.appendChild(pCell);
+        }
+
+        // Center Legend & Key-Card
+        const centerContainer = document.createElement("div");
+        centerContainer.className = "poster-center-box";
+        centerContainer.style.gridRow = "2 / span 3";
+        centerContainer.style.gridColumn = "4 / span 10";
+        centerContainer.innerHTML = `
+          <div class="center-legend">
+            <div class="legend-col">
+              ${categories.slice(0, 5).map(c => `
+                <div class="legend-item" data-cat="${c.id}">
+                  <span class="legend-swatch ${c.class}"></span>
+                  <span class="legend-label">${c.label}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="legend-col">
+              ${categories.slice(5).map(c => `
+                <div class="legend-item" data-cat="${c.id}">
+                  <span class="legend-swatch ${c.class}"></span>
+                  <span class="legend-label">${c.label}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="center-key-card" id="center-key-card">
+            <div class="key-callouts">
+              <div class="key-row"><span class="key-label">Atomic number</span> <span class="arrow">&rarr;</span></div>
+              <div class="key-row"><span class="key-label">Symbol</span> <span class="arrow">&rarr;</span></div>
+              <div class="key-row"><span class="key-label">Name</span> <span class="arrow">&rarr;</span></div>
+              <div class="key-row"><span class="key-label">Atomic mass</span> <span class="arrow">&rarr;</span></div>
+            </div>
+            <div class="key-tile-wrapper">
+              <div class="key-tile cat-nonmetal" id="key-tile">
+                <div class="key-tile-num"  id="key-num">1</div>
+                <div class="key-tile-sym"  id="key-sym">H</div>
+                <div class="key-tile-name" id="key-name">Hydrogen</div>
+                <div class="key-tile-mass" id="key-mass">1.008</div>
+              </div>
+            </div>
+          </div>
+        `;
+        tableMain.appendChild(centerContainer);
+
+        // Main elements (excluding lanthanides 57-71 and actinides 89-103)
+        const mainElements = elements.filter(
+          el => !((el.n >= 57 && el.n <= 71) || (el.n >= 89 && el.n <= 103))
+        );
+
+        mainElements.forEach(el => {
+          const cell = createElementCell(el);
+          cell.style.gridRow = String(el.row + 1);
+          cell.style.gridColumn = String(el.col + 1);
+          tableMain.appendChild(cell);
+          navGrid.push({ el, cellNode: cell });
+        });
+
+        // Lanthanide placeholder
+        const lPlaceholder = document.createElement("div");
+        lPlaceholder.className = "el cat-lanthanide el-placeholder";
+        lPlaceholder.style.gridRow = "7";
+        lPlaceholder.style.gridColumn = "4";
+        lPlaceholder.dataset.cat = "lanthanide";
+        lPlaceholder.innerHTML = `
+          <div class="el-num">57–71</div>
+          <div class="el-name-bold">Lanthanides</div>
+          <div class="el-star">*</div>
+        `;
+        lPlaceholder.addEventListener("click", () => highlightCategory('lanthanide'));
+        tableMain.appendChild(lPlaceholder);
+
+        // Actinide placeholder
+        const aPlaceholder = document.createElement("div");
+        aPlaceholder.className = "el cat-actinide el-placeholder";
+        aPlaceholder.style.gridRow = "8";
+        aPlaceholder.style.gridColumn = "4";
+        aPlaceholder.dataset.cat = "actinide";
+        aPlaceholder.innerHTML = `
+          <div class="el-num">89–103</div>
+          <div class="el-name-bold">Actinides</div>
+          <div class="el-star">**</div>
+        `;
+        aPlaceholder.addEventListener("click", () => highlightCategory('actinide'));
+        tableMain.appendChild(aPlaceholder);
+
+        // f-block rows
+        buildFBlock(tableFblock);
+
+        // Setup toolbar & interaction listeners
+        initLegendInteractions();
+        initSearch();
+        initMuteToggle();
+        initKeyboardNavigation();
+      }
+
+      function createElementCell(el) {
+        const cell = document.createElement("div");
+        cell.className = `el ${getCategoryClass(el.cat)}`;
+        cell.dataset.n = el.n;
+        cell.dataset.cat = el.cat;
+        cell.tabIndex = -1;
+
+        cell.innerHTML = `
+          <div class="el-num">${el.n}</div>
+          <div class="el-sym">${el.sym}</div>
+          <div class="el-name">${el.name}</div>
+          <div class="el-mass">${el.mass}</div>
+        `;
+
+        cell.addEventListener("click", () => {
+          const idx = navGrid.findIndex(entry => entry.cellNode === cell);
+          selectElementByIndex(idx);
+        });
+
+        cell.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            const idx = navGrid.findIndex(entry => entry.cellNode === cell);
+            selectElementByIndex(idx);
+          }
+        });
+
+        return cell;
+      }
+
+      function selectElementByIndex(idx) {
+        if (idx < 0 || idx >= navGrid.length) return;
+        const { el, cellNode } = navGrid[idx];
+
+        playElementSound(el.n);
+
+        document.querySelectorAll(".el").forEach(e => e.classList.remove("selected"));
+        cellNode.classList.add("selected");
+
+        if (focusedIndex !== idx) {
+          if (focusedIndex >= 0 && navGrid[focusedIndex]) {
+            navGrid[focusedIndex].cellNode.tabIndex = -1;
+          }
+          focusedIndex = idx;
+          cellNode.tabIndex = 0;
+          cellNode.focus({ preventScroll: false });
+        }
+
+        updateKeyTile(el);
+      }
+
+      function updateKeyTile(el) {
+        const keyTile = document.getElementById("key-tile");
+        const keyNum  = document.getElementById("key-num");
+        const keySym  = document.getElementById("key-sym");
+        const keyName = document.getElementById("key-name");
+        const keyMass = document.getElementById("key-mass");
+
+        if (!keyTile) return;
+
+        categories.forEach(c => keyTile.classList.remove(c.class));
+        keyTile.classList.add(getCategoryClass(el.cat));
+
+        keyNum.textContent  = el.n;
+        keySym.textContent  = el.sym;
+        keyName.textContent = el.name;
+        keyMass.textContent = el.mass;
+
+        keyTile.classList.remove("key-tile-animate");
+        void keyTile.offsetWidth;
+        keyTile.classList.add("key-tile-animate");
+      }
+
+      function buildFBlock(container) {
+        const groups = [
+          { label: '* Lanthanides', range: '57 – 71', filter: e => e.n >= 57 && e.n <= 71 },
+          { label: '** Actinides',  range: '89 – 103', filter: e => e.n >= 89 && e.n <= 103 }
+        ];
+
+        groups.forEach(({ label, range, filter }) => {
+          const row = document.createElement("div");
+          row.className = "fblock-row";
+
+          const labelEl = document.createElement("div");
+          labelEl.className = "fblock-label";
+          labelEl.innerHTML = `
+            <div class="fblock-label-title">${label}</div>
+            <div class="fblock-label-range">${range}</div>
+          `;
+          row.appendChild(labelEl);
+
+          elements.filter(filter).forEach(el => {
+            const cell = createElementCell(el);
+            row.appendChild(cell);
+            navGrid.push({ el, cellNode: cell });
+          });
+
+          container.appendChild(row);
+        });
+      }
+
+      function initSearch() {
+        const searchInput = document.getElementById("element-search");
+        const clearBtn    = document.getElementById("search-clear");
+        if (!searchInput) return;
+
+        function applySearch(raw) {
+          const q = raw.trim().toLowerCase();
+          if (!q) {
+            document.querySelectorAll(".el").forEach(cell => {
+              cell.classList.remove("search-match", "search-dim");
+            });
+            if (clearBtn) clearBtn.style.display = "none";
+            return;
+          }
+
+          if (clearBtn) clearBtn.style.display = "";
+
+          let firstMatch = null;
+          navGrid.forEach(({ el, cellNode }) => {
+            const nameMatch = el.name.toLowerCase().includes(q);
+            const symMatch  = el.sym.toLowerCase().startsWith(q) || el.sym.toLowerCase() === q;
+            const numMatch  = String(el.n) === q;
+
+            if (nameMatch || symMatch || numMatch) {
+              cellNode.classList.add("search-match");
+              cellNode.classList.remove("search-dim");
+              if (!firstMatch) firstMatch = cellNode;
+            } else {
+              cellNode.classList.remove("search-match");
+              cellNode.classList.add("search-dim");
+            }
+          });
+
+          if (firstMatch) {
+            firstMatch.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+          }
+        }
+
+        searchInput.addEventListener("input", () => applySearch(searchInput.value));
+
+        if (clearBtn) {
+          clearBtn.style.display = "none";
+          clearBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            applySearch("");
+            searchInput.focus();
+          });
+        }
+      }
+
+      function initMuteToggle() {
+        const muteBtn = document.getElementById("mute-toggle");
+        if (!muteBtn) return;
+
+        function syncLabel() {
+          const muted = isMuted();
+          muteBtn.textContent = muted ? "🔇 Sound Off" : "🔊 Sound On";
+          muteBtn.classList.toggle("mute-btn--muted", muted);
+        }
+
+        syncLabel();
+        muteBtn.addEventListener("click", () => {
+          toggleMute();
+          syncLabel();
+        });
+      }
+
+      function initKeyboardNavigation() {
+        const tableMain = document.getElementById("table-main");
+        if (!tableMain) return;
+
+        if (navGrid.length > 0) {
+          navGrid[0].cellNode.tabIndex = 0;
+        }
+
+        tableMain.addEventListener("keydown", (e) => {
+          if (!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) return;
+          if (focusedIndex < 0) return;
+          e.preventDefault();
+
+          const current = navGrid[focusedIndex].el;
+          let target = null;
+
+          if (e.key === "ArrowRight") {
+            target = navGrid.find((entry, i) => i > focusedIndex && entry.el.row === current.row);
+          } else if (e.key === "ArrowLeft") {
+            const candidates = navGrid.filter((entry, i) => i < focusedIndex && entry.el.row === current.row);
+            target = candidates[candidates.length - 1] || null;
+          } else if (e.key === "ArrowDown") {
+            target = findNearest(current, 1);
+          } else if (e.key === "ArrowUp") {
+            target = findNearest(current, -1);
+          }
+
+          if (target) {
+            const newIdx = navGrid.indexOf(target);
+            navGrid[focusedIndex].cellNode.tabIndex = -1;
+            focusedIndex = newIdx;
+            target.cellNode.tabIndex = 0;
+            target.cellNode.focus({ preventScroll: false });
+            target.cellNode.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+          }
+        });
+      }
+
+      function findNearest(current, rowDelta) {
+        const targetRow = current.row + rowDelta;
+        const candidates = navGrid.filter(entry => entry.el.row === targetRow);
+        if (!candidates.length) return null;
+        return candidates.reduce((best, entry) => {
+          const bDiff = Math.abs(best.el.col - current.col);
+          const eDiff = Math.abs(entry.el.col - current.col);
+          return eDiff < bDiff ? entry : best;
+        });
+      }
+
+      function initLegendInteractions() {
+        const legendItems = document.querySelectorAll(".legend-item");
+        let activeFilter = null;
+
+        legendItems.forEach(item => {
+          const cat = item.dataset.cat;
+          item.addEventListener("mouseenter", () => {
+            if (!activeFilter) dimNonMatching(cat);
+          });
+          item.addEventListener("mouseleave", () => {
+            if (!activeFilter) resetDimming();
+          });
+          item.addEventListener("click", () => {
+            if (activeFilter === cat) {
+              activeFilter = null;
+              legendItems.forEach(i => i.classList.remove("active"));
+              resetDimming();
+            } else {
+              activeFilter = cat;
+              legendItems.forEach(i => i.classList.remove("active"));
+              item.classList.add("active");
+              dimNonMatching(cat);
+            }
+          });
+        });
+      }
+
+      function highlightCategory(cat) {
+        dimNonMatching(cat);
+        const item = document.querySelector(`.legend-item[data-cat="${cat}"]`);
+        if (item) {
+          document.querySelectorAll(".legend-item").forEach(i => i.classList.remove("active"));
+          item.classList.add("active");
+        }
+      }
+
+      function dimNonMatching(cat) {
+        document.querySelectorAll(".el").forEach(cell => {
+          if (cell.dataset.cat === cat) {
+            cell.classList.remove("dimmed", "search-dim");
+            cell.classList.add("highlighted");
+          } else {
+            cell.classList.remove("highlighted");
+            cell.classList.add("dimmed");
+          }
+        });
+      }
+
+      function resetDimming() {
+        document.querySelectorAll(".el").forEach(cell => {
+          cell.classList.remove("dimmed", "highlighted");
+        });
+      }
+
+      // ── CALCULATOR MODULE ───────────────────────────────────────────────────
+      function tokenize(src) {
+        const tokens = [];
+        let i = 0;
+        while (i < src.length) {
+          const ch = src[i];
+          if (ch === ' ') { i++; continue; }
+          if (ch >= '0' && ch <= '9' || ch === '.') {
+            let num = '';
+            while (i < src.length && (src[i] >= '0' && src[i] <= '9' || src[i] === '.')) {
+              num += src[i++];
+            }
+            tokens.push({ type: 'NUM', val: parseFloat(num) });
+          } else if ('+-*/()%'.includes(ch)) {
+            tokens.push({ type: ch });
+            i++;
+          } else {
+            return null;
+          }
+        }
+        tokens.push({ type: 'EOF' });
+        return tokens;
+      }
+
+      function parse(tokens) {
+        let pos = 0;
+        function peek()    { return tokens[pos]; }
+        function consume() { return tokens[pos++]; }
+        function expect(type) {
+          if (peek().type !== type) throw new Error(`Expected ${type}`);
+          return consume();
+        }
+
+        function expr() {
+          let left = term();
+          while (peek().type === '+' || peek().type === '-') {
+            const op = consume().type;
+            const right = term();
+            left = op === '+' ? left + right : left - right;
+          }
+          return left;
+        }
+
+        function term() {
+          let left = unary();
+          while (peek().type === '*' || peek().type === '/' || peek().type === '%') {
+            const op = consume().type;
+            const right = unary();
+            if (op === '*') { left = left * right; }
+            else if (op === '/') {
+              if (right === 0) throw new Error('Division by zero');
+              left = left / right;
+            } else {
+              left = (left / 100) * right;
+            }
+          }
+          return left;
+        }
+
+        function unary() {
+          if (peek().type === '-') {
+            consume();
+            return -unary();
+          }
+          if (peek().type === '+') {
+            consume();
+            return unary();
+          }
+          return primary();
+        }
+
+        function primary() {
+          const tok = peek();
+          if (tok.type === 'NUM') {
+            consume();
+            if (peek().type === '%' && !['*', '/'].includes(tokens[pos + 1]?.type)) {
+              consume();
+              return tok.val / 100;
+            }
+            return tok.val;
+          }
+          if (tok.type === '(') {
+            consume();
+            const val = expr();
+            expect(')');
+            return val;
+          }
+          throw new Error(`Unexpected token: ${tok.type}`);
+        }
+
+        const result = expr();
+        if (peek().type !== 'EOF') throw new Error('Unexpected trailing characters');
+        return result;
+      }
+
+      function safeCalc(expression) {
+        const tokens = tokenize(expression);
+        if (!tokens) throw new Error('Invalid characters');
+        return parse(tokens);
+      }
+
+      function initCalculator() {
+        const calcDisplay = document.getElementById("calc-display");
+        const calcGrid    = document.getElementById("calc-grid");
+        if (!calcDisplay || !calcGrid) return;
+
+        const calcButtons = [
+          "C", "(", ")", "/",
+          "7", "8", "9", "*",
+          "4", "5", "6", "-",
+          "1", "2", "3", "+",
+          "0", ".", "=", "%"
+        ];
+
+        let expression = "";
+        calcGrid.innerHTML = "";
+        calcButtons.forEach(label => {
+          const btn = document.createElement("button");
+          btn.textContent = label;
+          btn.type = "button";
+          if (["/", "*", "-", "+", "%"].includes(label)) btn.classList.add("op");
+          if (label === "=") btn.classList.add("eq");
+          if (label === "C") btn.classList.add("clear");
+          btn.addEventListener("click", () => handleCalc(label));
+          calcGrid.appendChild(btn);
+        });
+
+        function handleCalc(label) {
+          if (label === "C") {
+            expression = "";
+          } else if (label === "=") {
+            calculateResult();
+            return;
+          } else {
+            if (expression === "Error") expression = "";
+            expression += label;
+          }
+          calcDisplay.value = expression === "" ? "0" : expression;
+        }
+
+        function calculateResult() {
+          if (!expression || expression === "Error") return;
+          try {
+            const result = safeCalc(expression);
+            if (!Number.isFinite(result)) throw new Error('Non-finite result');
+            expression = String(Math.round(result * 1e9) / 1e9);
+          } catch {
+            expression = "Error";
+          }
+          calcDisplay.value = expression;
+        }
+      }
+
+      // ── CONCENTRATION & MOLARITY MODULE ─────────────────────────────────────
+      function initConcentration() {
+        const calcBtn = document.getElementById("conc-btn");
+        const massInput = document.getElementById("mass");
+        const volumeInput = document.getElementById("volume");
+        const resultDiv = document.getElementById("conc-result");
+        if (!calcBtn || !massInput || !volumeInput || !resultDiv) return;
+
+        function calculateConcentration() {
+          const mass = parseFloat(massInput.value);
+          const volume = parseFloat(volumeInput.value);
+
+          if (isNaN(mass) || isNaN(volume)) {
+            setError(resultDiv, "Please enter valid numeric values for mass and volume.");
+            return;
+          }
+          if (mass < 0 || volume <= 0) {
+            setError(resultDiv, "Volume must be greater than 0, and mass cannot be negative.");
+            return;
+          }
+
+          const concentration = (mass / volume) * 100;
+          resultDiv.className = "success";
+          resultDiv.innerHTML = `
+            <div class="result-number">${concentration.toFixed(2)}%</div>
+            <div class="result-desc">${mass}g in ${volume}mL &mdash; Concentration (mass/volume)</div>
+          `;
+        }
+
+        calcBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          calculateConcentration();
+        });
+
+        [massInput, volumeInput].forEach(input => {
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); calculateConcentration(); }
+          });
+        });
+      }
+
+      function initMolarity() {
+        const molarityBtn = document.getElementById("molarity-btn");
+        const molMassInput = document.getElementById("mol-molar-mass");
+        const molMassSelect = document.getElementById("mol-element-select");
+        const molSoluteMass = document.getElementById("mol-solute-mass");
+        const molVolume = document.getElementById("mol-volume-liters");
+        const molResult = document.getElementById("molarity-result");
+        if (!molarityBtn || !molResult) return;
+
+        if (molMassSelect) {
+          const blank = document.createElement("option");
+          blank.value = "";
+          blank.textContent = "— select element for molar mass —";
+          molMassSelect.appendChild(blank);
+
+          elements.forEach(el => {
+            const opt = document.createElement("option");
+            opt.value = el.mass.replace(/[()]/g, "");
+            opt.textContent = `${el.name} (${el.sym}) — ${el.mass} g/mol`;
+            molMassSelect.appendChild(opt);
+          });
+
+          molMassSelect.addEventListener("change", () => {
+            if (molMassSelect.value && molMassInput) {
+              molMassInput.value = molMassSelect.value;
+            }
+          });
+        }
+
+        function calculateMolarity() {
+          const soluteMass = parseFloat(molSoluteMass?.value);
+          const molarMass = parseFloat(molMassInput?.value);
+          const volumeL = parseFloat(molVolume?.value);
+
+          if (isNaN(soluteMass) || isNaN(molarMass) || isNaN(volumeL)) {
+            setError(molResult, "Please fill in all three fields with valid numbers.");
+            return;
+          }
+          if (molarMass <= 0 || volumeL <= 0 || soluteMass < 0) {
+            setError(molResult, "Molar mass and volume must be > 0; solute mass cannot be negative.");
+            return;
+          }
+
+          const moles = soluteMass / molarMass;
+          const molarity = moles / volumeL;
+
+          molResult.className = "success";
+          molResult.innerHTML = `
+            <div class="result-number">${molarity.toFixed(4)} mol/L</div>
+            <div class="result-desc">${moles.toFixed(4)} mol of solute in ${volumeL} L &mdash; Molarity (M)</div>
+          `;
+        }
+
+        molarityBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          calculateMolarity();
+        });
+
+        [molSoluteMass, molMassInput, molVolume].forEach(input => {
+          if (!input) return;
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); calculateMolarity(); }
+          });
+        });
+      }
+
+      function setError(el, msg) {
+        el.className = "error";
+        el.textContent = msg;
+      }
+
+      // ── QUIZ MODULE ─────────────────────────────────────────────────────────
+      const QUIZ_MODES = ['name→symbol', 'symbol→name'];
+      let quizScore = 0;
+      let quizTotal = 0;
+      let currentQuizEl = null;
+      let correctQuizAnswer = '';
+      let quizAnswered = false;
+
+      function initQuiz() {
+        const container = document.getElementById("quiz-container");
+        if (!container) return;
+
+        container.innerHTML = `
+          <div class="quiz-score" id="quiz-score">Score: 0 / 0</div>
+          <div class="quiz-question" id="quiz-question"></div>
+          <div class="quiz-choices" id="quiz-choices"></div>
+          <div class="quiz-feedback" id="quiz-feedback" aria-live="polite"></div>
+          <button class="quiz-next-btn" id="quiz-next" type="button" style="display:none;">Next Question &rarr;</button>
+          <button class="quiz-reset-btn" id="quiz-reset" type="button">Reset Score</button>
+        `;
+
+        document.getElementById("quiz-next").addEventListener("click", () => nextQuestion(container));
+        document.getElementById("quiz-reset").addEventListener("click", () => {
+          quizScore = 0;
+          quizTotal = 0;
+          updateScore();
+          nextQuestion(container);
+        });
+
+        nextQuestion(container);
+      }
+
+      function nextQuestion(container) {
+        quizAnswered = false;
+        const feedback = document.getElementById("quiz-feedback");
+        const nextBtn  = document.getElementById("quiz-next");
+        if (feedback) { feedback.textContent = ''; feedback.className = 'quiz-feedback'; }
+        if (nextBtn)  nextBtn.style.display = 'none';
+
+        const mode = QUIZ_MODES[Math.floor(Math.random() * QUIZ_MODES.length)];
+        currentQuizEl = elements[Math.floor(Math.random() * elements.length)];
+
+        const pool = elements.filter(e => e.n !== currentQuizEl.n);
+        const distractors = shuffle(pool).slice(0, 3);
+        const choices = shuffle([currentQuizEl, ...distractors]);
+
+        let questionText, getChoiceText;
+        if (mode === 'name→symbol') {
+          questionText = `What is the chemical symbol for <strong>${currentQuizEl.name}</strong>?`;
+          correctQuizAnswer = currentQuizEl.sym;
+          getChoiceText = e => e.sym;
+        } else {
+          questionText = `Which element has the chemical symbol <strong>${currentQuizEl.sym}</strong>?`;
+          correctQuizAnswer = currentQuizEl.name;
+          getChoiceText = e => e.name;
+        }
+
+        const questionEl = document.getElementById("quiz-question");
+        const choicesEl  = document.getElementById("quiz-choices");
+        if (questionEl) questionEl.innerHTML = questionText;
+        if (!choicesEl) return;
+
+        choicesEl.innerHTML = '';
+        choices.forEach(el => {
+          const btn = document.createElement("button");
+          btn.className = "quiz-choice-btn";
+          btn.textContent = getChoiceText(el);
+          btn.type = "button";
+          btn.addEventListener("click", () => handleAnswer(btn, getChoiceText(el), container));
+          choicesEl.appendChild(btn);
+        });
+      }
+
+      function handleAnswer(btn, chosen, container) {
+        if (quizAnswered) return;
+        quizAnswered = true;
+        quizTotal++;
+
+        const isCorrect = chosen === correctQuizAnswer;
+        if (isCorrect) quizScore++;
+
+        const allBtns = container.querySelectorAll(".quiz-choice-btn");
+        allBtns.forEach(b => {
+          b.disabled = true;
+          if (b.textContent === correctQuizAnswer) {
+            b.classList.add("quiz-correct");
+          } else if (b === btn && !isCorrect) {
+            b.classList.add("quiz-wrong");
+          }
+        });
+
+        const feedback = document.getElementById("quiz-feedback");
+        if (feedback) {
+          feedback.textContent = isCorrect
+            ? `✅ Correct! ${currentQuizEl.name} (${currentQuizEl.sym}) — Atomic #${currentQuizEl.n}`
+            : `❌ Wrong. The correct answer is "${correctQuizAnswer}" — ${currentQuizEl.name} (${currentQuizEl.sym})`;
+          feedback.className = `quiz-feedback ${isCorrect ? 'quiz-feedback--correct' : 'quiz-feedback--wrong'}`;
+        }
+
+        updateScore();
+        const nextBtn = document.getElementById("quiz-next");
+        if (nextBtn) nextBtn.style.display = '';
+      }
+
+      function updateScore() {
+        const scoreEl = document.getElementById("quiz-score");
+        if (scoreEl) {
+          const pct = quizTotal > 0 ? Math.round((quizScore / quizTotal) * 100) : 0;
+          scoreEl.textContent = `Score: ${quizScore} / ${quizTotal}${quizTotal > 0 ? ` (${pct}%)` : ''}`;
+        }
+      }
+
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      // ── NAVIGATION & PRESENTATION MODULE ────────────────────────────────────
+      function initNavigation() {
+        const navButtons = document.querySelectorAll(".nav-btn");
+        const pages      = document.querySelectorAll(".page");
+
+        navButtons.forEach(btn => {
+          btn.addEventListener("click", () => {
+            const targetId = btn.dataset.page;
+            navButtons.forEach(b => b.classList.remove("active"));
+            pages.forEach(p => p.classList.remove("active"));
+
+            btn.classList.add("active");
+            const target = document.getElementById(targetId);
+            if (target) target.classList.add("active");
+
+            if (targetId === 'quiz-page') {
+              const container = document.getElementById("quiz-container");
+              if (container && !container.dataset.initialized) {
+                container.dataset.initialized = '1';
+                initQuiz();
+              }
+            }
+          });
+        });
+
+        // Fullscreen presentation helper
+        const fsBtn = document.getElementById("fullscreen-toggle");
+        if (fsBtn) {
+          fsBtn.addEventListener("click", () => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(() => {});
+              fsBtn.textContent = "✕ Exit Fullscreen";
+            } else {
+              if (document.exitFullscreen) document.exitFullscreen();
+              fsBtn.textContent = "⛶ Presentation Mode";
+            }
+          });
+          document.addEventListener("fullscreenchange", () => {
+            if (!document.fullscreenElement) {
+              fsBtn.textContent = "⛶ Presentation Mode";
+            }
+          });
+        }
+      }
+
+      // ── INITIALIZE APPLICATION ───────────────────────────────────────────────
+      document.addEventListener("DOMContentLoaded", () => {
+        initTheme();
+        initNavigation();
+        initPeriodicTable();
+        initCalculator();
+        initConcentration();
+        initMolarity();
+      });
+    })();
+  </script>
+</body>
+</html>
