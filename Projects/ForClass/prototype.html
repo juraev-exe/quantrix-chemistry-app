@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Duel Arena - 3-in-1 Retro Showdown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0d12;
+      --bg-card: rgba(16, 22, 34, 0.88);
+      --bg-card-border: #1e293b;
+      --neon-green: #00ff66;
+      --neon-green-glow: rgba(0, 255, 102, 0.45);
+      --neon-red: #ff2a55;
+      --neon-red-glow: rgba(255, 42, 85, 0.5);
+      --neon-amber: #ffb703;
+      --neon-amber-glow: rgba(255, 183, 3, 0.45);
+      --neon-cyan: #00f0ff;
+      --neon-cyan-glow: rgba(0, 240, 255, 0.4);
+      --text-main: #f1f5f9;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --font-pixel: 'Press Start 2P', monospace;
+      --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 80% 85%, rgba(255, 42, 85, 0.06) 0%, transparent 50%),
+        linear-gradient(rgba(10, 13, 18, 0.95), rgba(10, 13, 18, 0.95)),
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 102, 0.02) 2px, rgba(0, 255, 102, 0.02) 4px);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Subtle CRT Scanline overlay */
+    body::after {
+      content: " ";
+      display: block;
+      position: fixed;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+      z-index: 999;
+      background-size: 100% 3px, 6px 100%;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    /* Muzzle flash screen effect */
+    #muzzle-flash {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #ffffff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1000;
+      transition: opacity 0.05s ease-out;
+    }
+    #muzzle-flash.flash {
+      opacity: 0.94;
+      transition: none;
+    }
+
+    /* Screen Shake animation */
+    .screen-shake {
+      animation: screenShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes screenShake {
+      10%, 90% { transform: translate3d(-4px, 2px, 0); }
+      20%, 80% { transform: translate3d(5px, -4px, 0); }
+      30%, 50%, 70% { transform: translate3d(-7px, 6px, 0); }
+      40%, 60% { transform: translate3d(7px, -3px, 0); }
+    }
+
+    /* Header & Navigation */
+    header {
+      position: absolute;
+      top: 14px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 28px;
+      z-index: 20;
+    }
+    .game-logo-top {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 10px var(--neon-cyan-glow);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-btns {
+      display: flex;
+      gap: 10px;
+    }
+    .icon-btn {
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid var(--neon-cyan);
+      color: var(--neon-cyan);
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-btn:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: 0 0 12px var(--neon-cyan-glow);
+    }
+
+    /* Main Container */
+    .container {
+      width: 95%;
+      max-width: 1080px;
+      position: relative;
+      z-index: 5;
+      padding: 24px 0;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .view.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------------------------------------------------- */
+    /* START SCREEN & MODE SELECTOR                         */
+    /* ---------------------------------------------------- */
+    .title-banner {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .game-title {
+      font-family: var(--font-pixel);
+      font-size: 30px;
+      color: #fff;
+      text-shadow: 
+        0 0 10px var(--neon-green-glow),
+        0 0 25px var(--neon-green-glow),
+        0 4px 0 #005020;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    .game-title span {
+      color: var(--neon-green);
+    }
+    .game-subtitle {
+      font-size: 14px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .start-card {
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
+      border-radius: 10px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 240, 255, 0.08);
+      width: 100%;
+      max-width: 760px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Mode Selection Tabs */
+    .mode-selection-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .mode-tab {
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid #334155;
+      border-radius: 6px;
+      padding: 14px 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .mode-tab:hover {
+      border-color: var(--neon-cyan);
+      transform: translateY(-2px);
+    }
+    .mode-tab.active {
+      border-color: var(--neon-green);
+      background: rgba(0, 255, 102, 0.08);
+      box-shadow: 0 0 15px var(--neon-green-glow);
+    }
+    .mode-tab-icon {
+      font-size: 22px;
+    }
+    .mode-tab-title {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: #fff;
+    }
+    .mode-tab.active .mode-tab-title {
+      color: var(--neon-green);
+    }
+    .mode-tab-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .players-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .input-group label {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .input-group.p2 label {
+      color: var(--neon-amber);
+    }
+    .retro-input {
+      background: rgba(10, 15, 25, 0.85);
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      border-radius: 4px;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+    .retro-input:focus {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 12px var(--neon-green-glow);
+    }
+    .input-group.p2 .retro-input:focus {
+      border-color: var(--neon-amber);
+      box-shadow: 0 0 12px rgba(255, 183, 3, 0.4);
+    }
+
+    .mode-rules-box {
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid var(--neon-green);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-dim);
+      min-height: 85px;
+    }
+    .mode-rules-box strong {
+      color: var(--neon-green);
+    }
+
+    .start-actions {
+      display: flex;
+      gap: 15px;
+    }
+    .btn-arcade {
+      flex: 1;
+      padding: 15px 18px;
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      letter-spacing: 1px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: var(--neon-green);
+      color: #051408;
+      box-shadow: 0 4px 0 #00993d, 0 0 18px var(--neon-green-glow);
+    }
+    .btn-primary:hover {
+      background: #33ff85;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #00993d, 0 0 25px var(--neon-green-glow);
+    }
+    .btn-primary:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #00993d;
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--neon-cyan);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 4px 0 #0f172a;
+    }
+    .btn-secondary:hover {
+      background: var(--neon-cyan);
+      color: #061118;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #08838d, 0 0 18px var(--neon-cyan-glow);
+    }
+
+    /* ---------------------------------------------------- */
+    /* GAMEPLAY SCREEN (SHARED ARENA SYSTEM)                */
+    /* ---------------------------------------------------- */
+    .arena-layout {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    /* Sniper Cards */
+    .sniper-card {
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    .sniper-card.active-turn {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 20px var(--neon-green-glow);
+    }
+    .sniper-card.injured {
+      animation: sniperRecoil 0.5s ease-out;
+      border-color: var(--neon-red);
+    }
+    @keyframes sniperRecoil {
+      0% { transform: scale(1); filter: drop-shadow(0 0 20px var(--neon-red)); }
+      20% { transform: translateX(8px) scale(0.96); background: rgba(255, 42, 85, 0.25); }
+      50% { transform: translateX(-4px) scale(1.02); }
+      100% { transform: scale(1); filter: none; }
+    }
+    .sniper-card.p2.injured {
+      animation-name: sniperRecoilP2;
+    }
+    @keyframes sniperRecoilP2 {
+      0% { transform: scale(1); filter: drop-shadow(0 0 20px var(--neon-red)); }
+      20% { transform: translateX(-8px) scale(0.96); background: rgba(255, 42, 85, 0.25); }
+      50% { transform: translateX(4px) scale(1.02); }
+      100% { transform: scale(1); filter: none; }
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .player-name-tag {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 170px;
+    }
+    .p1-color { color: var(--neon-cyan); }
+    .p2-color { color: var(--neon-amber); }
+
+    .turn-badge {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      padding: 4px 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+    .sniper-card.active-turn .turn-badge {
+      background: var(--neon-green);
+      color: #051408;
+      box-shadow: 0 0 10px var(--neon-green-glow);
+      animation: pulseBadge 1.2s infinite ease-in-out;
+    }
+    @keyframes pulseBadge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Health Bars / Round Points */
+    .meter-container {
+      margin-bottom: 12px;
+    }
+    .meter-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      margin-bottom: 6px;
+    }
+    .meter-value {
+      font-size: 11px;
+      color: var(--neon-green);
+      font-weight: bold;
+    }
+    .bar-frame {
+      width: 100%;
+      height: 16px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #00bb44, var(--neon-green));
+      box-shadow: 0 0 10px var(--neon-green-glow);
+      border-radius: 2px;
+      transition: width 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.35s;
+    }
+    .bar-fill.danger {
+      background: linear-gradient(90deg, #c01030, var(--neon-red));
+      box-shadow: 0 0 10px var(--neon-red-glow);
+    }
+    .bar-fill.warning {
+      background: linear-gradient(90deg, #d97706, var(--neon-amber));
+      box-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
+    }
+
+    /* Round score pips for Quick Draw */
+    .round-pips-container {
+      display: none;
+      gap: 6px;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .score-pip {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1px solid #475569;
+      transition: all 0.3s;
+    }
+    .score-pip.scored-p1 {
+      background: var(--neon-cyan);
+      box-shadow: 0 0 10px var(--neon-cyan-glow);
+      border-color: #fff;
+    }
+    .score-pip.scored-p2 {
+      background: var(--neon-amber);
+      box-shadow: 0 0 10px var(--neon-amber-glow);
+      border-color: #fff;
+    }
+
+    /* Sniper Avatar Stage */
+    .avatar-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 130px;
+      position: relative;
+      background: radial-gradient(circle, rgba(15, 23, 42, 0.8) 0%, transparent 80%);
+      border-radius: 6px;
+      margin: 8px 0;
+    }
+    .sniper-svg {
+      width: 105px;
+      height: 105px;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+      transition: transform 0.2s ease;
+    }
+    .sniper-card.p2 .sniper-svg {
+      transform: scaleX(-1);
+    }
+
+    /* Floating Damage / Notification Text */
+    .floating-dmg {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-pixel);
+      font-size: 18px;
+      color: var(--neon-red);
+      text-shadow: 0 0 10px rgba(255, 42, 85, 0.8), 2px 2px 0 #000;
+      pointer-events: none;
+      animation: floatUpDamage 1s forwards ease-out;
+      z-index: 50;
+      white-space: nowrap;
+    }
+    @keyframes floatUpDamage {
+      0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+      20% { opacity: 1; transform: translate(-50%, -18px) scale(1.2); }
+      80% { opacity: 1; transform: translate(-50%, -40px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -55px) scale(0.8); }
+    }
+
+    .player-stats-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(10, 15, 25, 0.7);
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .player-stats-mini div span {
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Center Battle Hub */
+    .center-duel-hub {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .tactical-turn-announcer {
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      text-align: center;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .turn-status-lead {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--neon-green);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .turn-instructions {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* Interactive Typing Terminal */
+    .typing-terminal {
+      background: rgba(13, 17, 23, 0.95);
+      border: 2px solid #334155;
+      border-radius: 8px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex: 1;
+      min-height: 230px;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+    .typing-terminal.typing-active {
+      border-color: var(--neon-cyan);
+      box-shadow: inset 0 0 25px rgba(0, 240, 255, 0.05), 0 0 20px var(--neon-cyan-glow);
+    }
+    .typing-terminal.has-error {
+      border-color: var(--neon-red) !important;
+      box-shadow: inset 0 0 25px rgba(255, 42, 85, 0.1), 0 0 20px var(--neon-red-glow) !important;
+    }
+
+    /* Mode 1 & Mode 2 Single Target Prompt */
+    .word-prompt-display {
+      font-family: var(--font-mono);
+      font-size: 32px;
+      letter-spacing: 3px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      word-break: break-word;
+      padding: 0 10px;
+    }
+
+    /* Mode 2 Quick Draw Split Display */
+    .quick-draw-duel-box {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+    .qd-player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+    .qd-tag {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      min-width: 90px;
+    }
+    .qd-prompt {
+      font-size: 24px;
+      letter-spacing: 2px;
+      font-weight: bold;
+      flex: 1;
+      text-align: center;
+    }
+    .qd-key-instruction {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      background: #1e293b;
+      color: var(--neon-cyan);
+      border: 1px solid var(--neon-cyan);
+    }
+
+    /* Mode 3 Tug-of-War Split Display */
+    .tug-of-war-arena {
+      display: none;
+      width: 100%;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .tug-meter-bar {
+      width: 100%;
+      height: 22px;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 5px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+    .tug-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: #fff;
+      box-shadow: 0 0 10px #fff;
+      transform: translateX(-50%);
+      transition: left 0.15s ease-out;
+      z-index: 10;
+    }
+    .tug-side-left {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(0, 240, 255, 0.4), rgba(0, 255, 102, 0.6));
+      transition: width 0.15s ease-out;
+    }
+    .tug-side-right {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(255, 42, 85, 0.6), rgba(255, 183, 3, 0.4));
+      flex: 1;
+    }
+    .tug-inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+    }
+    .tug-player-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .tug-p-label {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      margin-bottom: 6px;
+    }
+    .tug-word-display {
+      font-size: 22px;
+      letter-spacing: 2px;
+      font-weight: bold;
+      min-height: 34px;
+    }
+
+    /* Letter State Coloring */
+    .char-correct {
+      color: var(--neon-green);
+      text-shadow: 0 0 8px var(--neon-green-glow);
+      border-bottom: 2px solid var(--neon-green);
+    }
+    .char-error {
+      color: #fff;
+      background: var(--neon-red);
+      text-shadow: 0 0 8px var(--neon-red-glow);
+      border-radius: 2px;
+      animation: errorShake 0.2s ease-in-out;
+    }
+    @keyframes errorShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+    .char-pending {
+      color: #475569;
+    }
+    .char-cursor {
+      border-left: 2px solid var(--neon-cyan);
+      animation: blinkCursor 0.8s infinite;
+    }
+    @keyframes blinkCursor {
+      0%, 49% { border-left-color: var(--neon-cyan); }
+      50%, 100% { border-left-color: transparent; }
+    }
+
+    /* HUD Metrics during typing */
+    .typing-live-hud {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      border-top: 1px solid #1e293b;
+      padding-top: 12px;
+      margin-top: 10px;
+    }
+    .hud-stat {
+      text-align: center;
+    }
+    .hud-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .hud-num {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: #fff;
+    }
+    .hud-num.highlight {
+      color: var(--neon-amber);
+    }
+
+    /* Error alert badge */
+    .error-alert-badge {
+      position: absolute;
+      bottom: 58px;
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--neon-red);
+      background: rgba(255, 42, 85, 0.15);
+      border: 1px solid var(--neon-red);
+      padding: 4px 10px;
+      border-radius: 4px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .error-alert-badge.show {
+      display: block;
+    }
+
+    /* Bullet Tracer Canvas / Animation */
+    #bullet-tracer-line {
+      position: absolute;
+      top: 50%;
+      height: 4px;
+      background: linear-gradient(90deg, #fff, var(--neon-amber), var(--neon-red));
+      box-shadow: 0 0 14px var(--neon-amber);
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(-50%);
+    }
+
+    /* ---------------------------------------------------- */
+    /* WINNER / GAME OVER SCREEN                            */
+    /* ---------------------------------------------------- */
+    .victory-card {
+      background: var(--bg-card);
+      border: 2px solid var(--neon-green);
+      border-radius: 8px;
+      box-shadow: 0 0 35px var(--neon-green-glow);
+      width: 100%;
+      max-width: 600px;
+      padding: 35px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+    .victory-header-tag {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--neon-cyan);
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .victory-winner-name {
+      font-family: var(--font-pixel);
+      font-size: 24px;
+      color: #fff;
+      text-shadow: 0 0 15px var(--neon-green-glow), 0 3px 0 #006b2b;
+      margin-bottom: 20px;
+    }
+    .victory-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 18px;
+      margin-bottom: 26px;
+    }
+    .vic-stat-box {
+      text-align: center;
+    }
+    .vic-stat-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .vic-stat-value {
+      font-family: var(--font-pixel);
+      font-size: 15px;
+      color: var(--neon-green);
+    }
+
+    /* ---------------------------------------------------- */
+    /* LEADERBOARD SCREEN                                   */
+    /* ---------------------------------------------------- */
+    .leaderboard-card {
+      background: var(--bg-card);
+      border: 2px solid var(--bg-card-border);
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      width: 100%;
+      max-width: 650px;
+      padding: 35px;
+      backdrop-filter: blur(10px);
+    }
+    .leaderboard-title {
+      font-family: var(--font-pixel);
+      font-size: 18px;
+      color: var(--neon-amber);
+      text-shadow: 0 0 12px rgba(255, 183, 3, 0.4);
+      text-align: center;
+      margin-bottom: 22px;
+      letter-spacing: 1px;
+    }
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 22px;
+    }
+    .leaderboard-table th {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--neon-cyan);
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 2px solid #334155;
+      text-transform: uppercase;
+    }
+    .leaderboard-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #1e293b;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+    .leaderboard-table tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.3);
+    }
+    .rank-cell {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      width: 60px;
+    }
+    .rank-1 { color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6); }
+    .rank-2 { color: #c0c0c0; }
+    .rank-3 { color: #cd7f32; }
+    .empty-lb-msg {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 25px;
+      font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .arena-layout {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .avatar-stage {
+        display: none;
+      }
+      .mode-selection-bar {
+        grid-template-columns: 1fr;
+      }
+      .players-inputs {
+        grid-template-columns: 1fr;
+      }
+      .word-prompt-display {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Muzzle Flash Overlay -->
+  <div id="muzzle-flash"></div>
+
+  <!-- Header Controls -->
+  <header>
+    <div class="game-logo-top">⚡ TYPING DUEL ARENA // 1v1 SHOWDOWN</div>
+    <div class="header-btns">
+      <button id="sound-toggle-btn" class="icon-btn" title="Toggle Sound">
+        <span id="sound-icon">🔊</span> SOUND
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ============================================== -->
+    <!-- VIEW 1: START SCREEN & MODE SELECTOR           -->
+    <!-- ============================================== -->
+    <div id="start-view" class="view active">
+      <div class="title-banner">
+        <h1 class="game-title">TYPING<span>DUEL</span></h1>
+        <p class="game-subtitle">1v1 Tactical Keyboard Combat</p>
+      </div>
+
+      <div class="start-card">
+        <!-- 3 Modes Selector -->
+        <div class="mode-selection-bar">
+          <div class="mode-tab active" data-mode="sniper">
+            <span class="mode-tab-icon">🎯</span>
+            <span class="mode-tab-title">SNIPER DUEL</span>
+            <span class="mode-tab-desc">Turn-based long range. Fast typing = high damage. 100 HP.</span>
+          </div>
+          <div class="mode-tab" data-mode="quickdraw">
+            <span class="mode-tab-icon">🤠</span>
+            <span class="mode-tab-title">QUICK DRAW</span>
+            <span class="mode-tab-desc">Simultaneous draw! P1 hits Left Shift, P2 hits Enter. Best of 5.</span>
+          </div>
+          <div class="mode-tab" data-mode="tugofwar">
+            <span class="mode-tab-icon">⚔️</span>
+            <span class="mode-tab-title">TUG-OF-WAR</span>
+            <span class="mode-tab-desc">Split-keyboard firefight! Type to push the enemy off the edge!</span>
+          </div>
+        </div>
+
+        <div class="players-inputs">
+          <div class="input-group">
+            <label for="p1-name-input">🎯 PLAYER 1 CALLSIGN</label>
+            <input type="text" id="p1-name-input" class="retro-input" maxlength="15" value="GHOST-1">
+          </div>
+          <div class="input-group p2">
+            <label for="p2-name-input">🎯 PLAYER 2 CALLSIGN</label>
+            <input type="text" id="p2-name-input" class="retro-input" maxlength="15" value="VIPER-2">
+          </div>
+        </div>
+
+        <div class="mode-rules-box" id="mode-rules-description">
+          <!-- Dynamic rule explanation -->
+        </div>
+
+        <div class="start-actions">
+          <button id="start-duel-btn" class="btn-arcade btn-primary">⚔️ ENTER ARENA</button>
+          <button id="view-leaderboard-btn" class="btn-arcade btn-secondary">🏆 LEADERBOARD</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW 2: GAMEPLAY ARENA                         -->
+    <!-- ============================================== -->
+    <div id="game-view" class="view">
+      <div class="arena-layout" id="battle-arena">
+        
+        <!-- PLAYER 1 CARD (LEFT) -->
+        <div class="sniper-card p1" id="p1-card">
+          <div class="player-header">
+            <span class="player-name-tag p1-color" id="p1-display-name">GHOST-1</span>
+            <span class="turn-badge" id="p1-turn-badge">ACTIVE</span>
+          </div>
+
+          <!-- Sniper Health Bar / Tug Progress -->
+          <div class="meter-container" id="p1-meter-container">
+            <div class="meter-labels">
+              <span id="p1-meter-title">HP</span>
+              <span class="meter-value" id="p1-meter-text">100/100</span>
+            </div>
+            <div class="bar-frame">
+              <div class="bar-fill" id="p1-bar-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- Quick Draw Round Win Pips -->
+          <div class="round-pips-container" id="p1-round-pips">
+            <div class="score-pip" id="p1-pip-1"></div>
+            <div class="score-pip" id="p1-pip-2"></div>
+            <div class="score-pip" id="p1-pip-3"></div>
+          </div>
+
+          <div class="avatar-stage">
+            <svg class="sniper-svg" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="30" r="16" fill="#1e293b" stroke="#00f0ff" stroke-width="2.5"/>
+              <rect x="52" y="26" width="16" height="7" rx="2" fill="#00ff66"/>
+              <path d="M30 65 L40 45 L60 45 L70 65 L76 90 L24 90 Z" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+              <rect x="42" y="48" width="54" height="6" rx="2" fill="#0f172a" stroke="#00f0ff" stroke-width="1.5"/>
+              <rect x="94" y="49" width="4" height="4" fill="#00ff66"/>
+              <rect x="50" y="41" width="22" height="5" rx="1.5" fill="#334155" stroke="#00f0ff" stroke-width="1"/>
+              <line x1="56" y1="46" x2="56" y2="48" stroke="#00f0ff" stroke-width="1.5"/>
+              <line x1="68" y1="46" x2="68" y2="48" stroke="#00f0ff" stroke-width="1.5"/>
+            </svg>
+            <div class="floating-dmg" id="p1-floating-dmg"></div>
+          </div>
+
+          <div class="player-stats-mini">
+            <div>AVG WPM: <span id="p1-avg-wpm">0</span></div>
+            <div>SCORE: <span id="p1-hits-count">0</span></div>
+          </div>
+        </div>
+
+        <!-- CENTER BATTLE HUB -->
+        <div class="center-duel-hub">
+          <div class="tactical-turn-announcer">
+            <div class="turn-status-lead" id="turn-announcement-lead">ENGAGEMENT READY</div>
+            <div class="turn-instructions" id="turn-instruction-text">PREPARING COMBAT SYSTEM...</div>
+          </div>
+
+          <div class="typing-terminal" id="typing-terminal-box">
+
+            <!-- MODE 1 PROMPT (Turn-Based Sniper) -->
+            <div class="word-prompt-display" id="word-prompt-container"></div>
+
+            <!-- MODE 2 PROMPT (Quick Draw Standoff) -->
+            <div class="quick-draw-duel-box" id="quick-draw-box">
+              <div class="qd-player-row">
+                <span class="qd-tag p1-color" id="qd-p1-name">P1</span>
+                <div class="qd-prompt" id="qd-p1-display">READY</div>
+                <span class="qd-key-instruction">SUBMIT: LEFT SHIFT</span>
+              </div>
+              <div class="qd-player-row">
+                <span class="qd-tag p2-color" id="qd-p2-name">P2</span>
+                <div class="qd-prompt" id="qd-p2-display">READY</div>
+                <span class="qd-key-instruction">SUBMIT: ENTER</span>
+              </div>
+            </div>
+
+            <!-- MODE 3 PROMPT (Tug-of-War Split Battlefield) -->
+            <div class="tug-of-war-arena" id="tug-of-war-box">
+              <div class="tug-meter-bar">
+                <div class="tug-side-left" id="tug-bar-p1" style="width: 50%;"></div>
+                <div class="tug-marker" id="tug-frontline-marker" style="left: 50%;"></div>
+                <div class="tug-side-right" id="tug-bar-p2"></div>
+              </div>
+              <div class="tug-inputs-grid">
+                <div class="tug-player-box">
+                  <div class="tug-p-label p1-color">P1 (LEFT HAND: Q-W-E-R-A-S-D-F-Z-X-C)</div>
+                  <div class="tug-word-display" id="tug-p1-word">...</div>
+                </div>
+                <div class="tug-player-box">
+                  <div class="tug-p-label p2-color">P2 (RIGHT HAND: Y-U-I-O-P-H-J-K-L-N-M)</div>
+                  <div class="tug-word-display" id="tug-p2-word">...</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="error-alert-badge" id="error-alert">
+              ⚠️ MISFIRE! PRESS BACKSPACE TO CORRECT
+            </div>
+
+            <div class="typing-live-hud">
+              <div class="hud-stat">
+                <div class="hud-label">LIVE SPEED</div>
+                <div class="hud-num highlight" id="live-wpm-stat">0 WPM</div>
+              </div>
+              <div class="hud-stat">
+                <div class="hud-label">TIME / STATUS</div>
+                <div class="hud-num" id="live-timer-stat">0.0s</div>
+              </div>
+              <div class="hud-stat">
+                <div class="hud-label">POTENTIAL DMG / GAIN</div>
+                <div class="hud-num" id="live-dmg-stat">--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLAYER 2 CARD (RIGHT) -->
+        <div class="sniper-card p2" id="p2-card">
+          <div class="player-header">
+            <span class="player-name-tag p2-color" id="p2-display-name">VIPER-2</span>
+            <span class="turn-badge" id="p2-turn-badge">ACTIVE</span>
+          </div>
+
+          <div class="meter-container" id="p2-meter-container">
+            <div class="meter-labels">
+              <span id="p2-meter-title">HP</span>
+              <span class="meter-value" id="p2-meter-text">100/100</span>
+            </div>
+            <div class="bar-frame">
+              <div class="bar-fill" id="p2-bar-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div class="round-pips-container" id="p2-round-pips">
+            <div class="score-pip" id="p2-pip-1"></div>
+            <div class="score-pip" id="p2-pip-2"></div>
+            <div class="score-pip" id="p2-pip-3"></div>
+          </div>
+
+          <div class="avatar-stage">
+            <svg class="sniper-svg" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="30" r="16" fill="#1e293b" stroke="#ffb703" stroke-width="2.5"/>
+              <rect x="52" y="26" width="16" height="7" rx="2" fill="#ff2a55"/>
+              <path d="M30 65 L40 45 L60 45 L70 65 L76 90 L24 90 Z" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+              <rect x="42" y="48" width="54" height="6" rx="2" fill="#0f172a" stroke="#ffb703" stroke-width="1.5"/>
+              <rect x="94" y="49" width="4" height="4" fill="#ff2a55"/>
+              <rect x="50" y="41" width="22" height="5" rx="1.5" fill="#334155" stroke="#ffb703" stroke-width="1"/>
+              <line x1="56" y1="46" x2="56" y2="48" stroke="#ffb703" stroke-width="1.5"/>
+              <line x1="68" y1="46" x2="68" y2="48" stroke="#ffb703" stroke-width="1.5"/>
+            </svg>
+            <div class="floating-dmg" id="p2-floating-dmg"></div>
+          </div>
+
+          <div class="player-stats-mini">
+            <div>AVG WPM: <span id="p2-avg-wpm">0</span></div>
+            <div>SCORE: <span id="p2-hits-count">0</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="bullet-tracer-line"></div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW 3: VICTORY SCREEN                         -->
+    <!-- ============================================== -->
+    <div id="victory-view" class="view">
+      <div class="victory-card">
+        <div class="victory-header-tag" id="vic-header-mode">🎯 TARGET ELIMINATED</div>
+        <h2 class="victory-winner-name" id="winner-banner-text">GHOST-1 WINS!</h2>
+
+        <div class="victory-stats-grid">
+          <div class="vic-stat-box">
+            <div class="vic-stat-label">WINNING SPEED</div>
+            <div class="vic-stat-value" id="vic-final-wpm">78 WPM</div>
+          </div>
+          <div class="vic-stat-box">
+            <div class="vic-stat-label">TOTAL ROUNDS / CLASHES</div>
+            <div class="vic-stat-value" id="vic-total-rounds">6</div>
+          </div>
+          <div class="vic-stat-box">
+            <div class="vic-stat-label">PLAYER 1 AVG WPM</div>
+            <div class="vic-stat-value" id="vic-p1-avg">64 WPM</div>
+          </div>
+          <div class="vic-stat-box">
+            <div class="vic-stat-label">PLAYER 2 AVG WPM</div>
+            <div class="vic-stat-value" id="vic-p2-avg">58 WPM</div>
+          </div>
+        </div>
+
+        <div class="start-actions">
+          <button id="rematch-btn" class="btn-arcade btn-primary">🔄 REMATCH</button>
+          <button id="victory-leaderboard-btn" class="btn-arcade btn-secondary">🏆 LEADERBOARD</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW 4: LEADERBOARD SCREEN                     -->
+    <!-- ============================================== -->
+    <div id="leaderboard-view" class="view">
+      <div class="leaderboard-card">
+        <h2 class="leaderboard-title">🏆 HALL OF FAME MARKSMEN</h2>
+
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th class="rank-cell">RANK</th>
+              <th>OPERATIVE</th>
+              <th style="text-align: right;">VICTORIES</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+
+        <div class="start-actions">
+          <button id="back-to-menu-btn" class="btn-arcade btn-primary">BACK TO LOBBY</button>
+          <button id="clear-leaderboard-btn" class="btn-arcade btn-secondary" style="color: var(--neon-red); border-color: var(--neon-red);">CLEAR DATA</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+     * 3-IN-1 TYPING DUEL ARENA ENGINE
+     * 1. Turn-Based Sniper Duel
+     * 2. Real-Time Wild West Quick Draw
+     * 3. Tug-of-War Firefight
+     * Pure Vanilla JavaScript (ES6+) with Direct DOM Manipulation
+     * ========================================================================= */
+
+    // --- Hardcoded Dictionaries for Combat Modes ---
+    const SNIPER_PHRASES = [
+      "headshot", "trigger discipline", "sniper rifle", "quick draw",
+      "steady aim", "bullet drop", "one shot one kill", "windage adjustment",
+      "bipod deployed", "ghillie suit", "spotter ready", "target locked",
+      "high caliber", "bolt action", "suppressor attached", "cold barrel",
+      "overwatch", "zeroed in", "perch secured", "breathe out",
+      "hollow point", "ricochet", "muzzle velocity", "recon report",
+      "tactical reload", "eagle eye", "flash suppressor", "long range",
+      "iron sights", "ghost operative", "crosshairs aligned", "silent assassin",
+      "thermal scope", "covert marksman", "bullseye", "aperture sight",
+      "lethal distance", "rapid fire", "precision shot", "ballistic trajectory"
+    ];
+
+    // Left-Hand Only Words (for Q, W, E, R, T, A, S, D, F, G, Z, X, C, V)
+    const LEFT_HAND_WORDS = [
+      "fast", "draw", "west", "gear", "star", "safe", "rage", "fade",
+      "dead", "crew", "cater", "tread", "water", "craft", "great",
+      "trade", "crest", "waste", "trace", "sweet", "extra", "brave",
+      "stare", "exact", "scare", "draft", "badge", "wafer", "facet"
+    ];
+
+    // Right-Hand Only Words (for Y, U, I, O, P, H, J, K, L, N, M)
+    const RIGHT_HAND_WORDS = [
+      "look", "kill", "noon", "holy", "moon", "loop", "lion", "join",
+      "jump", "hook", "pink", "plum", "point", "union", "monk", "poly",
+      "opium", "link", "hound", "plume", "joint", "holly", "milky",
+      "phony", "hymn", "ninja", "onion", "pupil", "limbo"
+    ];
+
+    // --- Native Web Audio Synthesizer ---
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return !this.muted;
+      }
+
+      playKeystroke(p2 = false) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(p2 ? 450 : 750, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      }
+
+      playTypo() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(130, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(70, this.ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.12);
+      }
+
+      playRifleShot() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const bufferSize = this.ctx.sampleRate * 0.35;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2800, this.ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.3);
+
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.32);
+
+        whiteNoise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(this.ctx.destination);
+
+        const bassOsc = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bassOsc.type = 'sine';
+        bassOsc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        bassOsc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.28);
+        bassGain.gain.setValueAtTime(0.45, this.ctx.currentTime);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.28);
+
+        bassOsc.connect(bassGain);
+        bassGain.connect(this.ctx.destination);
+
+        whiteNoise.start();
+        bassOsc.start();
+        bassOsc.stop(this.ctx.currentTime + 0.3);
+      }
+
+      playDrawStandoffBeep(high = false) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(high ? 1046.5 : 440, this.ctx.currentTime);
+        gain.gain.setValueAtTime(high ? 0.2 : 0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + (high ? 0.25 : 0.08));
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + (high ? 0.25 : 0.08));
+      }
+
+      playVictory() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.1);
+          gain.gain.setValueAtTime(0.1, this.ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.1 + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + i * 0.1);
+          osc.stop(this.ctx.currentTime + i * 0.1 + 0.25);
+        });
+      }
+    }
+
+    const sounds = new SoundEngine();
+
+    // --- Global Game State ---
+    const state = {
+      view: 'start',
+      mode: 'sniper', // 'sniper' | 'quickdraw' | 'tugofwar'
+      player1: { name: 'GHOST-1', hp: 100, score: 0, wpmHistory: [] },
+      player2: { name: 'VIPER-2', hp: 100, score: 0, wpmHistory: [] },
+      totalRounds: 0,
+
+      // Mode 1: Sniper Duel
+      sniper: {
+        activePlayer: 1,
+        targetPhrase: '',
+        typedInput: '',
+        hasTypo: false,
+        startTime: null,
+        canType: false,
+        timerInterval: null
+      },
+
+      // Mode 2: Quick Draw
+      quickdraw: {
+        phase: 'STANDBY', // 'STANDBY' | 'STEADY' | 'DRAW' | 'ROUND_OVER'
+        p1Target: '',
+        p2Target: '',
+        p1Input: '',
+        p2Input: '',
+        drawTimestamp: 0,
+        standoffTimeout: null
+      },
+
+      // Mode 3: Tug of War
+      tugofwar: {
+        active: false,
+        frontline: 50, // 0 = P2 wins, 100 = P1 wins
+        p1Target: '',
+        p2Target: '',
+        p1Input: '',
+        p2Input: '',
+        p1WpmCount: 0,
+        p2WpmCount: 0,
+        startTime: 0,
+        timerInterval: null
+      }
+    };
+
+    // --- DOM Cache ---
+    const dom = {
+      views: {
+        start: document.getElementById('start-view'),
+        game: document.getElementById('game-view'),
+        victory: document.getElementById('victory-view'),
+        leaderboard: document.getElementById('leaderboard-view')
+      },
+      inputs: {
+        p1Name: document.getElementById('p1-name-input'),
+        p2Name: document.getElementById('p2-name-input')
+      },
+      modeTabs: document.querySelectorAll('.mode-tab'),
+      modeRulesDesc: document.getElementById('mode-rules-description'),
+      buttons: {
+        startDuel: document.getElementById('start-duel-btn'),
+        viewLeaderboard: document.getElementById('view-leaderboard-btn'),
+        rematch: document.getElementById('rematch-btn'),
+        vicLeaderboard: document.getElementById('victory-leaderboard-btn'),
+        backToMenu: document.getElementById('back-to-menu-btn'),
+        clearLeaderboard: document.getElementById('clear-leaderboard-btn'),
+        soundToggle: document.getElementById('sound-toggle-btn')
+      },
+      soundIcon: document.getElementById('sound-icon'),
+      muzzleFlash: document.getElementById('muzzle-flash'),
+      bulletTracer: document.getElementById('bullet-tracer-line'),
+      battleArena: document.getElementById('battle-arena'),
+
+      // Player cards
+      p1Card: document.getElementById('p1-card'),
+      p1DisplayName: document.getElementById('p1-display-name'),
+      p1TurnBadge: document.getElementById('p1-turn-badge'),
+      p1MeterContainer: document.getElementById('p1-meter-container'),
+      p1MeterTitle: document.getElementById('p1-meter-title'),
+      p1MeterText: document.getElementById('p1-meter-text'),
+      p1BarFill: document.getElementById('p1-bar-fill'),
+      p1RoundPips: document.getElementById('p1-round-pips'),
+      p1FloatingDmg: document.getElementById('p1-floating-dmg'),
+      p1AvgWpm: document.getElementById('p1-avg-wpm'),
+      p1HitsCount: document.getElementById('p1-hits-count'),
+
+      p2Card: document.getElementById('p2-card'),
+      p2DisplayName: document.getElementById('p2-display-name'),
+      p2TurnBadge: document.getElementById('p2-turn-badge'),
+      p2MeterContainer: document.getElementById('p2-meter-container'),
+      p2MeterTitle: document.getElementById('p2-meter-title'),
+      p2MeterText: document.getElementById('p2-meter-text'),
+      p2BarFill: document.getElementById('p2-bar-fill'),
+      p2RoundPips: document.getElementById('p2-round-pips'),
+      p2FloatingDmg: document.getElementById('p2-floating-dmg'),
+      p2AvgWpm: document.getElementById('p2-avg-wpm'),
+      p2HitsCount: document.getElementById('p2-hits-count'),
+
+      // Terminal Hub
+      turnAnnouncementLead: document.getElementById('turn-announcement-lead'),
+      turnInstructionText: document.getElementById('turn-instruction-text'),
+      typingTerminalBox: document.getElementById('typing-terminal-box'),
+      errorAlert: document.getElementById('error-alert'),
+      liveWpmStat: document.getElementById('live-wpm-stat'),
+      liveTimerStat: document.getElementById('live-timer-stat'),
+      liveDmgStat: document.getElementById('live-dmg-stat'),
+
+      // Sub-views in Terminal
+      wordPromptContainer: document.getElementById('word-prompt-container'),
+      quickDrawBox: document.getElementById('quick-draw-box'),
+      qdP1Name: document.getElementById('qd-p1-name'),
+      qdP2Name: document.getElementById('qd-p2-name'),
+      qdP1Display: document.getElementById('qd-p1-display'),
+      qdP2Display: document.getElementById('qd-p2-display'),
+
+      tugOfWarBox: document.getElementById('tug-of-war-box'),
+      tugBarP1: document.getElementById('tug-bar-p1'),
+      tugMarker: document.getElementById('tug-frontline-marker'),
+      tugP1Word: document.getElementById('tug-p1-word'),
+      tugP2Word: document.getElementById('tug-p2-word'),
+
+      // Victory
+      vicHeaderMode: document.getElementById('vic-header-mode'),
+      winnerBannerText: document.getElementById('winner-banner-text'),
+      vicFinalWpm: document.getElementById('vic-final-wpm'),
+      vicTotalRounds: document.getElementById('vic-total-rounds'),
+      vicP1Avg: document.getElementById('vic-p1-avg'),
+      vicP2Avg: document.getElementById('vic-p2-avg'),
+
+      leaderboardBody: document.getElementById('leaderboard-body')
+    };
+
+    // --- Mode Descriptions & Selector ---
+    const MODE_RULES = {
+      sniper: `<strong>TURN-BASED SNIPER DUEL:</strong><br>
+        • Players take turns lining up precision rifle shots.<br>
+        • A phrase appears. When ready, type it with extreme speed.<br>
+        • Typos lock the trigger until fixed with <strong>Backspace</strong>.<br>
+        • WPM scales shot damage (Base 10 + up to 20 bonus). 100 HP duel!`,
+      quickdraw: `<strong>REAL-TIME WILD WEST QUICK DRAW:</strong><br>
+        • Both operatives hover over the keyboard together.<br>
+        • Wait for the tension countdown... when <strong>⚡ DRAW! ⚡</strong> appears, type your word!<br>
+        • <strong>Player 1</strong> submits with <strong>Left Shift</strong> | <strong>Player 2</strong> submits with <strong>Enter</strong>.<br>
+        • First clean submit wins the round! First to 3 round wins takes the match.`,
+      tugofwar: `<strong>TUG-OF-WAR FIREFIGHT:</strong><br>
+        • Simultaneous split-keyboard shootout pushing the battle line!<br>
+        • <strong>Player 1</strong> types words using Left Hand keys (Q, W, E, R, T, A, S, D, F, Z, X, C, V).<br>
+        • <strong>Player 2</strong> types words using Right Hand keys (Y, U, I, O, P, H, J, K, L, N, M).<br>
+        • Every word completed pushes the enemy back 8%. Push them off to win!`
+    };
+
+    function updateModeDescription() {
+      dom.modeRulesDesc.innerHTML = MODE_RULES[state.mode];
+    }
+    updateModeDescription();
+
+    dom.modeTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        dom.modeTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.mode = tab.dataset.mode;
+        updateModeDescription();
+      });
+    });
+
+    // --- Navigation ---
+    function switchView(viewName) {
+      state.view = viewName;
+      Object.keys(dom.views).forEach(key => {
+        dom.views[key].classList.toggle('active', key === viewName);
+      });
+      if (viewName === 'leaderboard') renderLeaderboard();
+    }
+
+    // --- Arena Mode Setup ---
+    function startMatch(isRematch = false) {
+      if (!isRematch) {
+        state.player1.name = dom.inputs.p1Name.value.trim() || 'GHOST-1';
+        state.player2.name = dom.inputs.p2Name.value.trim() || 'VIPER-2';
+      }
+
+      state.player1.hp = 100;
+      state.player1.score = 0;
+      state.player1.wpmHistory = [];
+
+      state.player2.hp = 100;
+      state.player2.score = 0;
+      state.player2.wpmHistory = [];
+
+      state.totalRounds = 0;
+
+      dom.p1DisplayName.textContent = state.player1.name;
+      dom.p2DisplayName.textContent = state.player2.name;
+      dom.qdP1Name.textContent = state.player1.name;
+      dom.qdP2Name.textContent = state.player2.name;
+
+      // Configure layout based on mode
+      configureArenaForMode();
+      switchView('game');
+
+      if (state.mode === 'sniper') {
+        state.sniper.activePlayer = 1;
+        prepareSniperTurn();
+      } else if (state.mode === 'quickdraw') {
+        prepareQuickDrawRound();
+      } else if (state.mode === 'tugofwar') {
+        startTugOfWarMatch();
+      }
+    }
+
+    function configureArenaForMode() {
+      // Toggle mode-specific terminal widgets
+      dom.wordPromptContainer.style.display = state.mode === 'sniper' ? 'block' : 'none';
+      dom.quickDrawBox.style.display = state.mode === 'quickdraw' ? 'flex' : 'none';
+      dom.tugOfWarBox.style.display = state.mode === 'tugofwar' ? 'flex' : 'none';
+
+      // Toggle side card meters vs pips
+      if (state.mode === 'quickdraw') {
+        dom.p1MeterContainer.style.display = 'none';
+        dom.p2MeterContainer.style.display = 'none';
+        dom.p1RoundPips.style.display = 'flex';
+        dom.p2RoundPips.style.display = 'flex';
+        updateScorePips();
+      } else {
+        dom.p1MeterContainer.style.display = 'block';
+        dom.p2MeterContainer.style.display = 'block';
+        dom.p1RoundPips.style.display = 'none';
+        dom.p2RoundPips.style.display = 'none';
+
+        if (state.mode === 'tugofwar') {
+          dom.p1MeterTitle.textContent = 'LINE';
+          dom.p2MeterTitle.textContent = 'LINE';
+        } else {
+          dom.p1MeterTitle.textContent = 'HP';
+          dom.p2MeterTitle.textContent = 'HP';
+        }
+        updateHpBars(false);
+      }
+
+      updateMiniStats();
+    }
+
+    /* =========================================================================
+     * MODE 1: TURN-BASED SNIPER DUEL LOGIC
+     * ========================================================================= */
+    function prepareSniperTurn() {
+      const s = state.sniper;
+      s.canType = false;
+      s.typedInput = '';
+      s.hasTypo = false;
+      s.startTime = null;
+      clearInterval(s.timerInterval);
+
+      s.targetPhrase = SNIPER_PHRASES[Math.floor(Math.random() * SNIPER_PHRASES.length)];
+
+      const activeObj = s.activePlayer === 1 ? state.player1 : state.player2;
+      const oppObj = s.activePlayer === 1 ? state.player2 : state.player1;
+
+      dom.p1Card.classList.toggle('active-turn', s.activePlayer === 1);
+      dom.p2Card.classList.toggle('active-turn', s.activePlayer === 2);
+      dom.p1TurnBadge.textContent = s.activePlayer === 1 ? 'SNIPING' : 'WAITING';
+      dom.p2TurnBadge.textContent = s.activePlayer === 2 ? 'SNIPING' : 'WAITING';
+
+      dom.liveWpmStat.textContent = '0 WPM';
+      dom.liveTimerStat.textContent = '0.0s';
+      dom.liveDmgStat.textContent = '10-30 HP';
+      dom.errorAlert.classList.remove('show');
+      dom.typingTerminalBox.classList.remove('typing-active', 'has-error');
+
+      dom.turnAnnouncementLead.textContent = `🎯 ${activeObj.name}'S TURN`;
+      dom.turnInstructionText.textContent = `LINE UP YOUR CROSSHAIR AT ${oppObj.name}!`;
+
+      renderSniperWordPrompt();
+
+      setTimeout(() => {
+        s.canType = true;
+        dom.typingTerminalBox.classList.add('typing-active');
+        sounds.playDrawStandoffBeep(false);
+      }, 350);
+    }
+
+    function renderSniperWordPrompt() {
+      const phrase = state.sniper.targetPhrase;
+      const input = state.sniper.typedInput;
+      let html = '';
+
+      for (let i = 0; i < phrase.length; i++) {
+        const expected = phrase[i];
+        const isCursor = (i === input.length && !state.sniper.hasTypo);
+
+        if (i < input.length) {
+          if (input[i] === expected) {
+            html += `<span class="char-correct">${escapeHtml(expected)}</span>`;
+          } else {
+            html += `<span class="char-error">${escapeHtml(expected)}</span>`;
+          }
+        } else if (isCursor) {
+          html += `<span class="char-cursor char-pending">${escapeHtml(expected)}</span>`;
+        } else {
+          html += `<span class="char-pending">${escapeHtml(expected)}</span>`;
+        }
+      }
+
+      if (state.sniper.hasTypo && input.length >= phrase.length) {
+        html += `<span class="char-error char-cursor">_</span>`;
+      }
+
+      dom.wordPromptContainer.innerHTML = html;
+    }
+
+    function handleSniperKey(e) {
+      const s = state.sniper;
+      if (!s.canType) return;
+
+      if (!s.startTime) {
+        s.startTime = performance.now();
+        s.timerInterval = setInterval(() => {
+          if (!s.startTime || !s.canType) return;
+          const elapsed = Math.max(0.1, (performance.now() - s.startTime) / 1000);
+          dom.liveTimerStat.textContent = `${elapsed.toFixed(1)}s`;
+          const wpm = Math.round((s.typedInput.length / 5) / (elapsed / 60)) || 0;
+          dom.liveWpmStat.textContent = `${wpm} WPM`;
+          const bonus = Math.min(20, Math.max(0, Math.round((wpm / 75) * 20)));
+          dom.liveDmgStat.textContent = `${10 + bonus} HP`;
+        }, 100);
+      }
+
+      if (e.key === 'Backspace') {
+        if (s.typedInput.length > 0) {
+          s.typedInput = s.typedInput.slice(0, -1);
+          sounds.playKeystroke();
+          validateSniperInput();
+        }
+        return;
+      }
+
+      if (e.key.length !== 1) return;
+
+      if (s.hasTypo) {
+        sounds.playTypo();
+        dom.typingTerminalBox.classList.add('screen-shake');
+        setTimeout(() => dom.typingTerminalBox.classList.remove('screen-shake'), 300);
+        return;
+      }
+
+      const expected = s.targetPhrase[s.typedInput.length];
+      if (e.key.toLowerCase() === expected.toLowerCase()) {
+        s.typedInput += expected;
+        sounds.playKeystroke();
+        validateSniperInput();
+
+        if (s.typedInput === s.targetPhrase) {
+          completeSniperShot();
+        }
+      } else {
+        s.typedInput += e.key;
+        s.hasTypo = true;
+        sounds.playTypo();
+        validateSniperInput();
+      }
+    }
+
+    function validateSniperInput() {
+      const s = state.sniper;
+      let typo = false;
+      for (let i = 0; i < s.typedInput.length; i++) {
+        if (s.typedInput[i] !== s.targetPhrase[i]) {
+          typo = true;
+          break;
+        }
+      }
+      s.hasTypo = typo;
+      dom.errorAlert.classList.toggle('show', typo);
+      dom.typingTerminalBox.classList.toggle('has-error', typo);
+      renderSniperWordPrompt();
+    }
+
+    function completeSniperShot() {
+      const s = state.sniper;
+      s.canType = false;
+      clearInterval(s.timerInterval);
+
+      const elapsed = Math.max(0.2, (performance.now() - s.startTime) / 1000);
+      const wpm = Math.round((s.targetPhrase.length / 5) / (elapsed / 60));
+      const speedBonus = Math.min(20, Math.max(2, Math.round((wpm / 75) * 20)));
+      const damage = 10 + speedBonus;
+
+      const isP1 = s.activePlayer === 1;
+      const shooter = isP1 ? state.player1 : state.player2;
+      const target = isP1 ? state.player2 : state.player1;
+
+      shooter.score += 1;
+      shooter.wpmHistory.push(wpm);
+      state.totalRounds += 1;
+
+      triggerGunfireAnimation(isP1, damage, wpm, () => {
+        target.hp = Math.max(0, target.hp - damage);
+        updateHpBars(true);
+        updateMiniStats();
+
+        if (target.hp <= 0) {
+          setTimeout(() => endMatch(shooter, wpm), 500);
+        } else {
+          s.activePlayer = isP1 ? 2 : 1;
+          setTimeout(prepareSniperTurn, 750);
+        }
+      });
+    }
+
+    /* =========================================================================
+     * MODE 2: REAL-TIME WILD WEST QUICK DRAW LOGIC
+     * ========================================================================= */
+    function prepareQuickDrawRound() {
+      const qd = state.quickdraw;
+      qd.phase = 'STANDBY';
+      qd.p1Input = '';
+      qd.p2Input = '';
+      clearTimeout(qd.standoffTimeout);
+
+      // Select words
+      qd.p1Target = LEFT_HAND_WORDS[Math.floor(Math.random() * LEFT_HAND_WORDS.length)];
+      qd.p2Target = RIGHT_HAND_WORDS[Math.floor(Math.random() * RIGHT_HAND_WORDS.length)];
+
+      dom.turnAnnouncementLead.textContent = '🤠 STANDOFF';
+      dom.turnInstructionText.textContent = 'HANDS OFF KEYBOARD... WAIT FOR THE DRAW SIGNAL!';
+      dom.qdP1Display.textContent = '•••••';
+      dom.qdP2Display.textContent = '•••••';
+      dom.liveWpmStat.textContent = '--';
+      dom.liveTimerStat.textContent = 'WAITING';
+      dom.liveDmgStat.textContent = '1 ROUND POINT';
+
+      // Random tension delay (1.8s - 3.8s)
+      const standoffDelay = 1800 + Math.random() * 2000;
+      qd.phase = 'STEADY';
+
+      qd.standoffTimeout = setTimeout(() => {
+        qd.phase = 'DRAW';
+        qd.drawTimestamp = performance.now();
+        sounds.playDrawStandoffBeep(true);
+
+        dom.turnAnnouncementLead.textContent = '⚡ DRAW! FIRE! ⚡';
+        dom.turnInstructionText.textContent = 'TYPE YOUR WORD & HIT YOUR SUBMIT KEY!';
+        dom.battleArena.classList.add('screen-shake');
+        setTimeout(() => dom.battleArena.classList.remove('screen-shake'), 200);
+
+        renderQuickDrawInputs();
+      }, standoffDelay);
+    }
+
+    function renderQuickDrawInputs() {
+      const qd = state.quickdraw;
+      dom.qdP1Display.innerHTML = renderSplitWord(qd.p1Target, qd.p1Input);
+      dom.qdP2Display.innerHTML = renderSplitWord(qd.p2Target, qd.p2Input);
+    }
+
+    function renderSplitWord(target, input) {
+      let html = '';
+      for (let i = 0; i < target.length; i++) {
+        const expected = target[i];
+        if (i < input.length) {
+          if (input[i] === expected) {
+            html += `<span class="char-correct">${expected}</span>`;
+          } else {
+            html += `<span class="char-error">${expected}</span>`;
+          }
+        } else if (i === input.length) {
+          html += `<span class="char-cursor char-pending">${expected}</span>`;
+        } else {
+          html += `<span class="char-pending">${expected}</span>`;
+        }
+      }
+      return html;
+    }
+
+    function handleQuickDrawKey(e) {
+      const qd = state.quickdraw;
+
+      // Early draw violation!
+      if (qd.phase === 'STEADY') {
+        clearTimeout(qd.standoffTimeout);
+        sounds.playTypo();
+        dom.turnAnnouncementLead.textContent = '⚠️ FOUL DRAW!';
+        dom.turnInstructionText.textContent = 'PREMATURE DISCHARGE! RESETTING ROUND...';
+        qd.phase = 'ROUND_OVER';
+        setTimeout(prepareQuickDrawRound, 1500);
+        return;
+      }
+
+      if (qd.phase !== 'DRAW') return;
+
+      const key = e.key.toLowerCase();
+
+      // PLAYER 1 HANDLING (Left hand keys + Left Shift to submit)
+      if (e.code === 'ShiftLeft') {
+        if (qd.p1Input === qd.p1Target) {
+          scoreQuickDrawRound(1);
+        } else {
+          sounds.playTypo();
+        }
+        return;
+      }
+
+      if (e.code === 'Enter') {
+        // PLAYER 2 HANDLING (Right hand keys + Enter to submit)
+        if (qd.p2Input === qd.p2Target) {
+          scoreQuickDrawRound(2);
+        } else {
+          sounds.playTypo();
+        }
+        return;
+      }
+
+      // Left-side keys for P1
+      if ("qwertasdfgzxcv".includes(key)) {
+        if (qd.p1Input.length < qd.p1Target.length) {
+          qd.p1Input += key;
+          sounds.playKeystroke(false);
+          renderQuickDrawInputs();
+        }
+      }
+
+      // Right-side keys for P2
+      if ("yuiophjklnm".includes(key)) {
+        if (qd.p2Input.length < qd.p2Target.length) {
+          qd.p2Input += key;
+          sounds.playKeystroke(true);
+          renderQuickDrawInputs();
+        }
+      }
+
+      // Backspace logic
+      if (e.key === 'Backspace') {
+        if (qd.p1Input.length > 0) qd.p1Input = qd.p1Input.slice(0, -1);
+        if (qd.p2Input.length > 0) qd.p2Input = qd.p2Input.slice(0, -1);
+        renderQuickDrawInputs();
+      }
+    }
+
+    function scoreQuickDrawRound(winnerId) {
+      const qd = state.quickdraw;
+      qd.phase = 'ROUND_OVER';
+
+      const elapsedMs = Math.round(performance.now() - qd.drawTimestamp);
+      const winner = winnerId === 1 ? state.player1 : state.player2;
+      const loser = winnerId === 1 ? state.player2 : state.player1;
+
+      winner.score += 1;
+      state.totalRounds += 1;
+
+      const wpmEst = Math.round((5 / (elapsedMs / 1000 / 60)));
+      winner.wpmHistory.push(wpmEst);
+
+      triggerGunfireAnimation(winnerId === 1, 1, wpmEst, () => {
+        updateScorePips();
+        updateMiniStats();
+
+        dom.turnAnnouncementLead.textContent = `💥 ${winner.name} DREW FIRST! (${elapsedMs}ms)`;
+        dom.turnInstructionText.textContent = `ROUND WON! FIRST TO 3 TAKES THE SHOWDOWN!`;
+
+        if (winner.score >= 3) {
+          setTimeout(() => endMatch(winner, wpmEst), 600);
+        } else {
+          setTimeout(prepareQuickDrawRound, 1400);
+        }
+      });
+    }
+
+    function updateScorePips() {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`p1-pip-${i}`).className = `score-pip ${state.player1.score >= i ? 'scored-p1' : ''}`;
+        document.getElementById(`p2-pip-${i}`).className = `score-pip ${state.player2.score >= i ? 'scored-p2' : ''}`;
+      }
+    }
+
+    /* =========================================================================
+     * MODE 3: TUG-OF-WAR FIREFIGHT LOGIC
+     * ========================================================================= */
+    function startTugOfWarMatch() {
+      const tow = state.tugofwar;
+      tow.active = true;
+      tow.frontline = 50;
+      tow.p1Input = '';
+      tow.p2Input = '';
+      tow.p1WpmCount = 0;
+      tow.p2WpmCount = 0;
+      tow.startTime = performance.now();
+
+      nextTugWord(1);
+      nextTugWord(2);
+      updateTugBar();
+
+      dom.turnAnnouncementLead.textContent = '⚔️ RAPID FIREFIGHT';
+      dom.turnInstructionText.textContent = 'CONTINUOUS BURST FIRE! PUSH THE FRONTLINE OFF THE OPPONENT!';
+
+      clearInterval(tow.timerInterval);
+      tow.timerInterval = setInterval(() => {
+        if (!tow.active) return;
+        const elapsed = (performance.now() - tow.startTime) / 1000;
+        dom.liveTimerStat.textContent = `${elapsed.toFixed(1)}s`;
+      }, 100);
+    }
+
+    function nextTugWord(playerId) {
+      const tow = state.tugofwar;
+      if (playerId === 1) {
+        tow.p1Target = LEFT_HAND_WORDS[Math.floor(Math.random() * LEFT_HAND_WORDS.length)];
+        tow.p1Input = '';
+      } else {
+        tow.p2Target = RIGHT_HAND_WORDS[Math.floor(Math.random() * RIGHT_HAND_WORDS.length)];
+        tow.p2Input = '';
+      }
+      renderTugDisplays();
+    }
+
+    function renderTugDisplays() {
+      const tow = state.tugofwar;
+      dom.tugP1Word.innerHTML = renderSplitWord(tow.p1Target, tow.p1Input);
+      dom.tugP2Word.innerHTML = renderSplitWord(tow.p2Target, tow.p2Input);
+    }
+
+    function handleTugOfWarKey(e) {
+      const tow = state.tugofwar;
+      if (!tow.active) return;
+
+      const key = e.key.toLowerCase();
+
+      // P1 Left hand letters
+      if ("qwertasdfgzxcv".includes(key)) {
+        const expected = tow.p1Target[tow.p1Input.length];
+        if (key === expected) {
+          tow.p1Input += key;
+          sounds.playKeystroke(false);
+          renderTugDisplays();
+
+          if (tow.p1Input === tow.p1Target) {
+            tow.p1WpmCount += 1;
+            pushTugFrontline(1);
+            nextTugWord(1);
+          }
+        } else {
+          sounds.playTypo();
+        }
+      }
+
+      // P2 Right hand letters
+      if ("yuiophjklnm".includes(key)) {
+        const expected = tow.p2Target[tow.p2Input.length];
+        if (key === expected) {
+          tow.p2Input += key;
+          sounds.playKeystroke(true);
+          renderTugDisplays();
+
+          if (tow.p2Input === tow.p2Target) {
+            tow.p2WpmCount += 1;
+            pushTugFrontline(2);
+            nextTugWord(2);
+          }
+        } else {
+          sounds.playTypo();
+        }
+      }
+    }
+
+    function pushTugFrontline(playerId) {
+      const tow = state.tugofwar;
+      const isP1 = playerId === 1;
+
+      // Push by 8% per completed word
+      tow.frontline += isP1 ? 8 : -8;
+      tow.frontline = Math.max(0, Math.min(100, tow.frontline));
+      state.totalRounds += 1;
+
+      sounds.playRifleShot();
+      dom.muzzleFlash.classList.add('flash');
+      setTimeout(() => dom.muzzleFlash.classList.remove('flash'), 50);
+
+      updateTugBar();
+
+      // Check boundary win conditions
+      if (tow.frontline >= 100) {
+        tow.active = false;
+        clearInterval(tow.timerInterval);
+        const elapsedMin = Math.max(0.1, (performance.now() - tow.startTime) / 1000 / 60);
+        const p1Wpm = Math.round(tow.p1WpmCount / elapsedMin * 5);
+        state.player1.wpmHistory.push(p1Wpm);
+        setTimeout(() => endMatch(state.player1, p1Wpm), 400);
+      } else if (tow.frontline <= 0) {
+        tow.active = false;
+        clearInterval(tow.timerInterval);
+        const elapsedMin = Math.max(0.1, (performance.now() - tow.startTime) / 1000 / 60);
+        const p2Wpm = Math.round(tow.p2WpmCount / elapsedMin * 5);
+        state.player2.wpmHistory.push(p2Wpm);
+        setTimeout(() => endMatch(state.player2, p2Wpm), 400);
+      }
+    }
+
+    function updateTugBar() {
+      const pct = state.tugofwar.frontline;
+      dom.tugBarP1.style.width = `${pct}%`;
+      dom.tugMarker.style.left = `${pct}%`;
+
+      // Update HP-style display to show frontline control
+      dom.p1MeterText.textContent = `${pct}%`;
+      dom.p2MeterText.textContent = `${100 - pct}%`;
+      dom.p1BarFill.style.width = `${pct}%`;
+      dom.p2BarFill.style.width = `${100 - pct}%`;
+    }
+
+    /* =========================================================================
+     * GLOBAL KEY ROUTER
+     * ========================================================================= */
+    window.addEventListener('keydown', (e) => {
+      if (state.view !== 'game') return;
+
+      if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab'].includes(e.key) && e.code !== 'ShiftLeft') {
+        return;
+      }
+      if (e.key === ' ' || e.key.startsWith('Arrow')) e.preventDefault();
+
+      if (state.mode === 'sniper') handleSniperKey(e);
+      else if (state.mode === 'quickdraw') handleQuickDrawKey(e);
+      else if (state.mode === 'tugofwar') handleTugOfWarKey(e);
+    });
+
+    /* =========================================================================
+     * VISUAL COMBAT & ANIMATION PIPELINE
+     * ========================================================================= */
+    function triggerGunfireAnimation(isP1, damage, wpm, onComplete) {
+      sounds.playRifleShot();
+      dom.muzzleFlash.classList.add('flash');
+      setTimeout(() => dom.muzzleFlash.classList.remove('flash'), 70);
+
+      const tracer = dom.bulletTracer;
+      const arenaRect = dom.battleArena.getBoundingClientRect();
+      const distance = Math.max(200, arenaRect.width - 540);
+
+      if (isP1) {
+        tracer.style.left = '270px';
+        tracer.style.right = 'auto';
+        tracer.style.width = '0px';
+        tracer.style.background = 'linear-gradient(90deg, #fff, var(--neon-cyan), var(--neon-amber))';
+      } else {
+        tracer.style.right = '270px';
+        tracer.style.left = 'auto';
+        tracer.style.width = '0px';
+        tracer.style.background = 'linear-gradient(270deg, #fff, var(--neon-amber), var(--neon-red))';
+      }
+
+      tracer.style.opacity = '1';
+      tracer.style.transition = 'width 0.12s linear';
+
+      requestAnimationFrame(() => tracer.style.width = `${distance}px`);
+
+      setTimeout(() => {
+        tracer.style.opacity = '0';
+        tracer.style.width = '0px';
+
+        const victimCard = isP1 ? dom.p2Card : dom.p1Card;
+        const floatingDmg = isP1 ? dom.p2FloatingDmg : dom.p1FloatingDmg;
+
+        victimCard.classList.add('injured');
+        dom.battleArena.classList.add('screen-shake');
+
+        floatingDmg.textContent = state.mode === 'quickdraw' ? '🎯 DRAW HIT!' : `-${damage} HP!`;
+        floatingDmg.style.animation = 'none';
+        floatingDmg.offsetHeight;
+        floatingDmg.style.animation = 'floatUpDamage 1s forwards ease-out';
+
+        setTimeout(() => {
+          victimCard.classList.remove('injured');
+          dom.battleArena.classList.remove('screen-shake');
+        }, 450);
+
+        if (onComplete) onComplete();
+      }, 120);
+    }
+
+    function updateHpBars(animate = true) {
+      const p1Hp = state.player1.hp;
+      const p2Hp = state.player2.hp;
+
+      dom.p1MeterText.textContent = `${p1Hp}/100`;
+      dom.p2MeterText.textContent = `${p2Hp}/100`;
+      dom.p1BarFill.style.width = `${p1Hp}%`;
+      dom.p2BarFill.style.width = `${p2Hp}%`;
+
+      [dom.p1BarFill, dom.p2BarFill].forEach((bar, idx) => {
+        const hp = idx === 0 ? p1Hp : p2Hp;
+        bar.classList.remove('warning', 'danger');
+        if (hp <= 25) bar.classList.add('danger');
+        else if (hp <= 55) bar.classList.add('warning');
+      });
+    }
+
+    function updateMiniStats() {
+      const calcAvg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+      dom.p1AvgWpm.textContent = `${calcAvg(state.player1.wpmHistory)} WPM`;
+      dom.p1HitsCount.textContent = state.player1.score;
+
+      dom.p2AvgWpm.textContent = `${calcAvg(state.player2.wpmHistory)} WPM`;
+      dom.p2HitsCount.textContent = state.player2.score;
+    }
+
+    /* =========================================================================
+     * WIN CONDITION & LEADERBOARD SYSTEM
+     * ========================================================================= */
+    function endMatch(winner, peakWpm) {
+      sounds.playVictory();
+
+      dom.vicHeaderMode.textContent = `🎯 MODE: ${state.mode.toUpperCase()}`;
+      dom.winnerBannerText.textContent = `🏆 ${winner.name} WINS!`;
+      dom.vicFinalWpm.textContent = `${peakWpm || 70} WPM`;
+      dom.vicTotalRounds.textContent = state.totalRounds;
+
+      const calcAvg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+      dom.vicP1Avg.textContent = `${calcAvg(state.player1.wpmHistory)} WPM`;
+      dom.vicP2Avg.textContent = `${calcAvg(state.player2.wpmHistory)} WPM`;
+
+      saveWinnerToLeaderboard(winner.name);
+      switchView('victory');
+    }
+
+    const STORAGE_KEY = 'typing_duel_hall_of_fame_v2';
+
+    function getLeaderboard() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveWinnerToLeaderboard(winnerName) {
+      const name = winnerName.trim().toUpperCase();
+      let board = getLeaderboard();
+      const existing = board.find(item => item.name === name);
+
+      if (existing) {
+        existing.wins += 1;
+        existing.lastWin = Date.now();
+      } else {
+        board.push({ name, wins: 1, lastWin: Date.now() });
+      }
+
+      board.sort((a, b) => b.wins - a.wins);
+      board = board.slice(0, 10);
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(board));
+      } catch (e) {}
+    }
+
+    function renderLeaderboard() {
+      const board = getLeaderboard();
+      dom.leaderboardBody.innerHTML = '';
+
+      if (board.length === 0) {
+        dom.leaderboardBody.innerHTML = `
+          <tr><td colspan="3" class="empty-lb-msg">NO DUEL VICTORIES RECORDED YET. STEP UP TO THE ARENA!</td></tr>
+        `;
+        return;
+      }
+
+      board.forEach((entry, idx) => {
+        const rank = idx + 1;
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+        const rankIcon = rank === 1 ? '🥇 ' : rank === 2 ? '🥈 ' : rank === 3 ? '🥉 ' : `#${rank} `;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="rank-cell ${rankClass}">${rankIcon}</td>
+          <td><strong>${escapeHtml(entry.name)}</strong></td>
+          <td style="text-align: right; font-family: var(--font-pixel); color: var(--neon-green);">${entry.wins} WINS</td>
+        `;
+        dom.leaderboardBody.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // --- Button Bindings ---
+    dom.buttons.startDuel.addEventListener('click', () => {
+      sounds.init();
+      startMatch(false);
+    });
+
+    dom.buttons.viewLeaderboard.addEventListener('click', () => switchView('leaderboard'));
+    dom.buttons.rematch.addEventListener('click', () => startMatch(true));
+    dom.buttons.vicLeaderboard.addEventListener('click', () => switchView('leaderboard'));
+    dom.buttons.backToMenu.addEventListener('click', () => switchView('start'));
+
+    dom.buttons.clearLeaderboard.addEventListener('click', () => {
+      if (confirm('Clear all hall of fame records?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderLeaderboard();
+      }
+    });
+
+    dom.buttons.soundToggle.addEventListener('click', () => {
+      const active = sounds.toggleMute();
+      dom.soundIcon.textContent = active ? '🔊' : '🔇';
+    });
+
+    [dom.inputs.p1Name, dom.inputs.p2Name].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') startMatch(false);
+      });
+    });
+
+  </script>
+</body>
+</html>

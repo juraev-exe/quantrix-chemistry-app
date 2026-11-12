@@ -1,8 +1,7 @@
-// P2: Safe recursive-descent expression parser.
-// Handles: numbers (decimals), +, -, *, /, (, ), %
-// No eval / Function constructor used.
+import { playTapSound, playSuccessSound, playErrorSound } from './audio.js';
 
-// ── Parser ────────────────────────────────────────────────────────────────────
+// Safe recursive-descent expression parser.
+// Handles: numbers, +, -, *, /, (, ), %
 
 function tokenize(src) {
   const tokens = [];
@@ -10,9 +9,9 @@ function tokenize(src) {
   while (i < src.length) {
     const ch = src[i];
     if (ch === ' ') { i++; continue; }
-    if (ch >= '0' && ch <= '9' || ch === '.') {
+    if ((ch >= '0' && ch <= '9') || ch === '.') {
       let num = '';
-      while (i < src.length && (src[i] >= '0' && src[i] <= '9' || src[i] === '.')) {
+      while (i < src.length && ((src[i] >= '0' && src[i] <= '9') || src[i] === '.')) {
         num += src[i++];
       }
       tokens.push({ type: 'NUM', val: parseFloat(num) });
@@ -20,28 +19,17 @@ function tokenize(src) {
       tokens.push({ type: ch });
       i++;
     } else {
-      return null; // unexpected character
+      return null;
     }
   }
   tokens.push({ type: 'EOF' });
   return tokens;
 }
 
-// Grammar (with correct precedence):
-//   expr   = term ( ('+' | '-') term )*
-//   term   = unary ( ('*' | '/' | '%') unary )*
-//   unary  = '-' unary | primary
-//   primary = NUM | '(' expr ')'
-
 function parse(tokens) {
   let pos = 0;
-
   function peek()    { return tokens[pos]; }
   function consume() { return tokens[pos++]; }
-  function expect(type) {
-    if (peek().type !== type) throw new Error(`Expected ${type}`);
-    return consume();
-  }
 
   function expr() {
     let left = term();
@@ -63,7 +51,6 @@ function parse(tokens) {
         if (right === 0) throw new Error('Division by zero');
         left = left / right;
       } else {
-        // % as "percent of": 50 % 200 → 50/100*200 = 100; standalone 50% → 0.5
         left = (left / 100) * right;
       }
     }
@@ -75,10 +62,6 @@ function parse(tokens) {
       consume();
       return -unary();
     }
-    if (peek().type === '+') {
-      consume();
-      return unary();
-    }
     return primary();
   }
 
@@ -86,34 +69,28 @@ function parse(tokens) {
     const tok = peek();
     if (tok.type === 'NUM') {
       consume();
-      // Handle trailing % on a bare number (50% → 0.5)
-      if (peek().type === '%' && !['*', '/'].includes(tokens[pos + 1]?.type)) {
-        consume();
-        return tok.val / 100;
-      }
       return tok.val;
     }
     if (tok.type === '(') {
       consume();
       const val = expr();
-      expect(')');
+      if (peek().type !== ')') throw new Error('Expected )');
+      consume();
       return val;
     }
-    throw new Error(`Unexpected token: ${tok.type}`);
+    throw new Error('Unexpected token');
   }
 
   const result = expr();
-  if (peek().type !== 'EOF') throw new Error('Unexpected trailing characters');
+  if (peek().type !== 'EOF') throw new Error('Extra tokens after expression');
   return result;
 }
 
-function safeCalc(expression) {
-  const tokens = tokenize(expression);
-  if (!tokens) throw new Error('Invalid characters');
+export function safeCalc(str) {
+  const tokens = tokenize(str);
+  if (!tokens) throw new Error('Invalid expression');
   return parse(tokens);
 }
-
-// ── Calculator UI ─────────────────────────────────────────────────────────────
 
 export function initCalculator() {
   const calcDisplay = document.getElementById("calc-display");
@@ -139,7 +116,10 @@ export function initCalculator() {
     if (["/", "*", "-", "+", "%"].includes(label)) btn.classList.add("op");
     if (label === "=") btn.classList.add("eq");
     if (label === "C") btn.classList.add("clear");
-    btn.addEventListener("click", () => handleCalc(label));
+    btn.addEventListener("click", () => {
+      playTapSound();
+      handleCalc(label);
+    });
     calcGrid.appendChild(btn);
   });
 
@@ -161,10 +141,11 @@ export function initCalculator() {
     try {
       const result = safeCalc(expression);
       if (!Number.isFinite(result)) throw new Error('Non-finite result');
-      // Round away floating-point noise
       expression = String(Math.round(result * 1e9) / 1e9);
+      playSuccessSound();
     } catch {
       expression = "Error";
+      playErrorSound();
     }
     calcDisplay.value = expression;
   }

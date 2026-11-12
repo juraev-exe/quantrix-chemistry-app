@@ -1,6 +1,7 @@
 import { elements } from '../data/elements.js';
+import { playSuccessSound, playErrorSound, playTapSound } from './audio.js';
 
-// P3: Element quiz — random element question, 4 choices, session score tracking.
+// Element Quiz — Random chemical element questions with 4 choices.
 
 const MODES = ['name→symbol', 'symbol→name'];
 
@@ -24,10 +25,12 @@ export function initQuiz() {
   `;
 
   document.getElementById("quiz-next").addEventListener("click", () => {
+    playTapSound();
     nextQuestion(container);
   });
 
   document.getElementById("quiz-reset").addEventListener("click", () => {
+    playTapSound();
     score = 0;
     total = 0;
     updateScore();
@@ -54,14 +57,13 @@ function nextQuestion(container) {
   const distractors = shuffle(pool).slice(0, 3);
   const choices = shuffle([currentEl, ...distractors]);
 
-  // Question & answer text depending on mode
   let questionText, getChoiceText;
   if (mode === 'name→symbol') {
-    questionText   = `What is the symbol for <strong>${currentEl.name}</strong>?`;
+    questionText   = `What is the chemical symbol for <strong>${currentEl.name}</strong>?`;
     correctAnswer  = currentEl.sym;
     getChoiceText  = e => e.sym;
   } else {
-    questionText   = `What element has the symbol <strong>${currentEl.sym}</strong>?`;
+    questionText   = `Which element has the symbol <strong>${currentEl.sym}</strong>?`;
     correctAnswer  = currentEl.name;
     getChoiceText  = e => e.name;
   }
@@ -89,9 +91,14 @@ function handleAnswer(btn, chosen, container) {
   total++;
 
   const isCorrect = chosen === correctAnswer;
-  if (isCorrect) score++;
+  if (isCorrect) {
+    score++;
+    playSuccessSound();
+  } else {
+    playErrorSound();
+  }
 
-  // Mark all buttons correct/wrong visually
+  // Mark button states
   const allBtns = container.querySelectorAll(".quiz-choice-btn");
   allBtns.forEach(b => {
     b.disabled = true;
@@ -105,8 +112,8 @@ function handleAnswer(btn, chosen, container) {
   const feedback = document.getElementById("quiz-feedback");
   if (feedback) {
     feedback.textContent = isCorrect
-      ? `✅ Correct! ${currentEl.name} (${currentEl.sym}) — Atomic #${currentEl.n}`
-      : `❌ Wrong. The correct answer is "${correctAnswer}" — ${currentEl.name} (${currentEl.sym})`;
+      ? `Correct. ${currentEl.name} (${currentEl.sym}) — Atomic #${currentEl.n}`
+      : `Incorrect. The correct answer is "${correctAnswer}" — ${currentEl.name} (${currentEl.sym})`;
     feedback.className = `quiz-feedback ${isCorrect ? 'quiz-feedback--correct' : 'quiz-feedback--wrong'}`;
   }
 

@@ -1,0 +1,18 @@
+{
+  "short_name": "TYPE OR DIE",
+  "name": "TYPE OR DIE | Local Multiplayer Typing Shooter",
+  "description": "Competitive local two-player typing shooter. Test your typing speed and accuracy in an arcade standoff.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#070a12",
+  "theme_color": "#00ff66",
+  "display": "standalone",
+  "orientation": "landscape"
+}

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#1b2a38" rx="20"/>
+  <!-- Tajik tricolor hint at top -->
+  <rect x="0" y="0" width="128" height="6" fill="#d52b1e" rx="3"/>
+  <rect x="0" y="6" width="128" height="4" fill="#ffffff"/>
+  <rect x="0" y="10" width="128" height="6" fill="#009944" rx="2"/>
+  <!-- Distant Pamir Peaks -->
+  <polygon points="10,95 45,35 75,95" fill="#3a506b"/>
+  <polygon points="45,35 55,50 48,55 42,50 35,53" fill="#ffffff"/>
+  <!-- Ismoil Somoni peak -->
+  <polygon points="40,110 80,25 120,110" fill="#486581"/>
+  <polygon points="80,25 92,48 83,52 75,47 68,53" fill="#f0f4f8"/>
+  <!-- Foreground Foothills -->
+  <polygon points="0,128 35,80 85,128" fill="#2b4353"/>
+  <polygon points="55,128 95,85 128,128" fill="#1f3342"/>
+  <!-- Voxel Grid Texture Accent -->
+  <rect x="58" y="100" width="12" height="12" fill="#5c7f67" stroke="#1b2a38" stroke-width="2"/>
+  <rect x="70" y="100" width="12" height="12" fill="#8d6e63" stroke="#1b2a38" stroke-width="2"/>
+  <rect x="70" y="88" width="12" height="12" fill="#5c7f67" stroke="#1b2a38" stroke-width="2"/>
+  <!-- Golden Tajik Crown & Stars hint -->
+  <circle cx="64" cy="22" r="3" fill="#ffd700"/>
+  <circle cx="50" cy="26" r="2.5" fill="#ffd700"/>
+  <circle cx="78" cy="26" r="2.5" fill="#ffd700"/>
+  <circle cx="40" cy="32" r="2" fill="#ffd700"/>
+  <circle cx="88" cy="32" r="2" fill="#ffd700"/>
+</svg>
+

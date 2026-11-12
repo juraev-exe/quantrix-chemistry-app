@@ -1,7 +1,7 @@
 import { elements } from '../data/elements.js';
-import { playElementSound, isMuted, toggleMute } from './audio.js';
+import { playElementSound, isMuted, toggleMute, playTapSound } from './audio.js';
 
-// Category metadata matching the poster
+// Category metadata matching standard IUPAC classification
 export const categories = [
   { id: 'alkali-metal',     label: 'Alkali metals',           class: 'cat-alkali' },
   { id: 'alkaline-earth',   label: 'Alkaline earth metals',   class: 'cat-alkaline' },
@@ -15,23 +15,21 @@ export const categories = [
   { id: 'actinide',         label: 'Actinides',               class: 'cat-actinide' }
 ];
 
-// Map category id → CSS class
 function getCategoryClass(cat) {
   const match = categories.find(c => c.id === cat);
   return match ? match.class : '';
 }
 
-// Flat ordered list of element cells for keyboard navigation (populated on init)
-let navGrid = []; // [{ el, cellNode }] in reading order
-let focusedIndex = -1; // index into navGrid that currently holds keyboard focus
+let navGrid = [];
+let focusedIndex = -1;
 
 export function initPeriodicTable() {
-  const tableMain  = document.getElementById("table-main");
+  const tableMain   = document.getElementById("table-main");
   const tableFblock = document.getElementById("table-fblock");
 
   if (!tableMain || !tableFblock) return;
 
-  tableMain.innerHTML  = '';
+  tableMain.innerHTML   = '';
   tableFblock.innerHTML = '';
   navGrid = [];
   focusedIndex = -1;
@@ -42,8 +40,8 @@ export function initPeriodicTable() {
   axisCorner.style.gridRow    = "1";
   axisCorner.style.gridColumn = "1";
   axisCorner.innerHTML = `
-    <span class="group-arrow">Group &rarr;</span>
-    <span class="period-arrow">Period &darr;</span>
+    <span>Grp &rarr;</span>
+    <span>Per &darr;</span>
   `;
   tableMain.appendChild(axisCorner);
 
@@ -111,7 +109,7 @@ export function initPeriodicTable() {
   `;
   tableMain.appendChild(centerContainer);
 
-  // ── Main grid elements (skip lanthanides / actinides) ─────────────────────
+  // ── Main grid elements ─────────────────────────────────────────────────────
   const mainElements = elements.filter(
     el => !((el.n >= 57 && el.n <= 71) || (el.n >= 89 && el.n <= 103))
   );
@@ -168,7 +166,7 @@ function createElementCell(el) {
   cell.className   = `el ${getCategoryClass(el.cat)}`;
   cell.dataset.n   = el.n;
   cell.dataset.cat = el.cat;
-  cell.tabIndex    = -1;  // reachable by keyboard navigation, not tab order
+  cell.tabIndex    = -1;
 
   cell.innerHTML = `
     <div class="el-num">${el.n}</div>
@@ -177,12 +175,17 @@ function createElementCell(el) {
     <div class="el-mass">${el.mass}</div>
   `;
 
+  // Respond immediately on pointerdown for zero tactile latency
+  cell.addEventListener("pointerdown", () => {
+    const idx = navGrid.findIndex(entry => entry.cellNode === cell);
+    selectElementByIndex(idx);
+  });
+
   cell.addEventListener("click", () => {
     const idx = navGrid.findIndex(entry => entry.cellNode === cell);
     selectElementByIndex(idx);
   });
 
-  // Keyboard: Enter / Space triggers selection
   cell.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -194,7 +197,7 @@ function createElementCell(el) {
   return cell;
 }
 
-// ── Select element by navGrid index ─────────────────────────────────────────
+// ── Select element by index ─────────────────────────────────────────────────
 function selectElementByIndex(idx) {
   if (idx < 0 || idx >= navGrid.length) return;
   const { el, cellNode } = navGrid[idx];
@@ -204,7 +207,6 @@ function selectElementByIndex(idx) {
   document.querySelectorAll(".el").forEach(e => e.classList.remove("selected"));
   cellNode.classList.add("selected");
 
-  // Set keyboard focus ring
   if (focusedIndex !== idx) {
     if (focusedIndex >= 0 && navGrid[focusedIndex]) {
       navGrid[focusedIndex].cellNode.tabIndex = -1;
@@ -243,8 +245,8 @@ function updateKeyTile(el) {
 // ── f-block builder ──────────────────────────────────────────────────────────
 function buildFBlock(container) {
   const groups = [
-    { label: '* Lanthanides', range: '57 &ndash; 71', filter: e => e.n >= 57 && e.n <= 71 },
-    { label: '** Actinides',  range: '89 &ndash; 103', filter: e => e.n >= 89 && e.n <= 103 }
+    { label: '* Lanthanides', range: '57 – 71', filter: e => e.n >= 57 && e.n <= 71 },
+    { label: '** Actinides',  range: '89 – 103', filter: e => e.n >= 89 && e.n <= 103 }
   ];
 
   groups.forEach(({ label, range, filter }) => {
@@ -269,7 +271,7 @@ function buildFBlock(container) {
   });
 }
 
-// ── P1-3: Search ────────────────────────────────────────────────────────────
+// ── Search ──────────────────────────────────────────────────────────────────
 function initSearch() {
   const searchInput = document.getElementById("element-search");
   const clearBtn    = document.getElementById("search-clear");
@@ -278,7 +280,6 @@ function initSearch() {
   function applySearch(raw) {
     const q = raw.trim().toLowerCase();
     if (!q) {
-      // Clear: restore full visibility
       document.querySelectorAll(".el").forEach(cell => {
         cell.classList.remove("search-match", "search-dim");
       });
@@ -304,7 +305,6 @@ function initSearch() {
       }
     });
 
-    // Scroll first match into view
     if (firstMatch) {
       firstMatch.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     }
@@ -315,6 +315,7 @@ function initSearch() {
   if (clearBtn) {
     clearBtn.style.display = "none";
     clearBtn.addEventListener("click", () => {
+      playTapSound();
       searchInput.value = "";
       applySearch("");
       searchInput.focus();
@@ -322,15 +323,19 @@ function initSearch() {
   }
 }
 
-// ── P2: Mute toggle ──────────────────────────────────────────────────────────
+// ── Mute toggle ──────────────────────────────────────────────────────────────
+const SPEAKER_ON_SVG = `<svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>`;
+const SPEAKER_OFF_SVG = `<svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
+
 function initMuteToggle() {
   const muteBtn = document.getElementById("mute-toggle");
   if (!muteBtn) return;
 
   function syncLabel() {
     const muted = isMuted();
-    muteBtn.textContent = muted ? "🔇 Sound Off" : "🔊 Sound On";
+    muteBtn.innerHTML = `${muted ? SPEAKER_OFF_SVG : SPEAKER_ON_SVG}<span>${muted ? "Sound Off" : "Sound On"}</span>`;
     muteBtn.classList.toggle("mute-btn--muted", muted);
+    muteBtn.setAttribute("aria-pressed", String(!muted));
   }
 
   syncLabel();
@@ -340,13 +345,11 @@ function initMuteToggle() {
   });
 }
 
-// ── P2: Keyboard navigation ──────────────────────────────────────────────────
-// Arrow keys move focus following the (row, col) positions of elements
+// ── Keyboard navigation ──────────────────────────────────────────────────────
 function initKeyboardNavigation() {
   const tableMain = document.getElementById("table-main");
   if (!tableMain) return;
 
-  // Make the first element focusable as a starting point
   if (navGrid.length > 0) {
     navGrid[0].cellNode.tabIndex = 0;
   }
@@ -361,17 +364,14 @@ function initKeyboardNavigation() {
 
     if (e.key === "ArrowRight") {
       target = navGrid.find((entry, i) =>
-        i > focusedIndex &&
-        entry.el.row === current.row
+        i > focusedIndex && entry.el.row === current.row
       );
     } else if (e.key === "ArrowLeft") {
       const candidates = navGrid.filter((entry, i) =>
-        i < focusedIndex &&
-        entry.el.row === current.row
+        i < focusedIndex && entry.el.row === current.row
       );
       target = candidates[candidates.length - 1] || null;
     } else if (e.key === "ArrowDown") {
-      // Find next element in the next period with the nearest column
       target = findNearest(current, 1);
     } else if (e.key === "ArrowUp") {
       target = findNearest(current, -1);
@@ -379,22 +379,20 @@ function initKeyboardNavigation() {
 
     if (target) {
       const newIdx = navGrid.indexOf(target);
-      // Move tabIndex
       navGrid[focusedIndex].cellNode.tabIndex = -1;
       focusedIndex = newIdx;
       target.cellNode.tabIndex = 0;
       target.cellNode.focus({ preventScroll: false });
       target.cellNode.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      selectElementByIndex(newIdx);
     }
   });
 }
 
-// Find nearest element one period above or below current
 function findNearest(current, rowDelta) {
   const targetRow = current.row + rowDelta;
   const candidates = navGrid.filter(entry => entry.el.row === targetRow);
   if (!candidates.length) return null;
-  // Pick the one with closest column
   return candidates.reduce((best, entry) => {
     const bDiff = Math.abs(best.el.col - current.col);
     const eDiff = Math.abs(entry.el.col - current.col);
@@ -417,6 +415,7 @@ function initLegendInteractions() {
       if (!activeFilter) resetDimming();
     });
     item.addEventListener("click", () => {
+      playTapSound();
       if (activeFilter === cat) {
         activeFilter = null;
         legendItems.forEach(i => i.classList.remove("active"));

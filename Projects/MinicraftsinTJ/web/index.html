@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TajikCraft: Land of Mountains (ТоҷикКрафт)</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0b0f14; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    #canvas-container { width: 100%; height: 100%; position: absolute; left: 0; top: 0; }
+
+    /* Crosshair & Target Tooltip */
+    #crosshair {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0.9); font-size: 24px; pointer-events: none; z-index: 10;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+    }
+    #target-info {
+      position: absolute; left: 50%; top: 54%; transform: translateX(-50%);
+      color: #ffd700; font-size: 13px; pointer-events: none; z-index: 10;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9); font-weight: 600;
+      background: rgba(10, 14, 20, 0.55); padding: 2px 8px; border-radius: 4px; display: none;
+    }
+
+    /* Top Compass & Notifications */
+    #compass-bar {
+      position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 10;
+      color: #ffe082; font-size: 13px; font-weight: bold;
+      background: rgba(12, 17, 24, 0.72); padding: 5px 16px; border-radius: 20px;
+      border: 1px solid rgba(255, 215, 0, 0.35); text-shadow: 0 1px 2px #000;
+    }
+    #discovery-banner {
+      position: absolute; left: 50%; top: 54px; transform: translateX(-50%); z-index: 15;
+      color: #a5d6a7; font-size: 15px; font-weight: bold; pointer-events: none;
+      background: rgba(10, 18, 14, 0.85); padding: 6px 18px; border-radius: 6px;
+      border: 1px solid #66bb6a; display: none; text-shadow: 0 1px 2px #000;
+    }
+
+    /* Top Left Overlay */
+    #info-overlay {
+      position: absolute; left: 16px; top: 16px; z-index: 10; color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9); font-size: 12px; line-height: 1.55;
+      background: rgba(12, 17, 24, 0.68); padding: 10px 14px; border-radius: 8px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+    #info-overlay h1 { font-size: 15px; color: #ffd700; margin-bottom: 4px; letter-spacing: 0.5px; }
+
+    /* Top Right Quick Buttons */
+    #top-actions {
+      position: absolute; right: 16px; top: 16px; z-index: 20; display: flex; gap: 8px;
+    }
+    .mini-btn {
+      background: rgba(15, 22, 32, 0.8); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.4);
+      padding: 6px 11px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;
+    }
+    .mini-btn:hover { background: rgba(255, 215, 0, 0.2); }
+
+    /* Bottom Survival HUD */
+    #hud-bottom {
+      position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 10;
+    }
+    .bars-row {
+      display: flex; gap: 14px; align-items: center;
+      background: rgba(12, 17, 24, 0.78); padding: 6px 14px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .bar-wrap { display: flex; flex-direction: column; width: 120px; font-size: 10px; color: #ddd; }
+    .bar-bg { width: 100%; height: 9px; background: #1c222a; border-radius: 3px; overflow: hidden; margin-top: 2px; }
+    .bar-fill { height: 100%; width: 100%; transition: width 0.15s; }
+    #health-fill { background: #e53935; }
+    #hunger-fill { background: #fb8c00; }
+    #stamina-fill { background: #43a047; }
+    #temp-label { font-size: 12px; color: #90caf9; font-weight: 600; min-width: 175px; text-align: right; }
+
+    /* Hotbar */
+    #hotbar {
+      display: flex; gap: 5px; background: rgba(10, 14, 20, 0.88);
+      padding: 5px; border-radius: 8px; border: 2px solid #37474f;
+    }
+    .slot {
+      width: 52px; height: 52px; background: #1c2430; border: 2px solid #455a64;
+      border-radius: 5px; position: relative; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: transform 0.1s;
+    }
+    .slot.active { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); transform: scale(1.06); }
+    .slot img { width: 36px; height: 36px; image-rendering: pixelated; pointer-events: none; }
+    .slot .count {
+      position: absolute; right: 3px; bottom: 1px; font-size: 11px;
+      color: #ffeb3b; font-weight: bold; text-shadow: 1px 1px 2px #000;
+    }
+    .slot .key-num {
+      position: absolute; left: 3px; top: 1px; font-size: 9px; color: #90a4ae;
+    }
+    #held-label {
+      font-size: 12px; color: #fff; background: rgba(0,0,0,0.55);
+      padding: 2px 10px; border-radius: 4px; text-shadow: 0 1px 2px #000;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(5, 8, 12, 0.82); z-index: 100; display: flex;
+      flex-direction: column; align-items: center; justify-content: center; color: #fff;
+    }
+    #click-blocker h1 { font-size: 40px; color: #ffd700; margin-bottom: 6px; letter-spacing: 1.5px; }
+    #click-blocker h2 { font-size: 15px; color: #90caf9; margin-bottom: 20px; font-weight: normal; }
+    .btn-start {
+      background: #ffd700; color: #000; font-size: 17px; font-weight: bold;
+      padding: 13px 34px; border: none; border-radius: 6px; cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); transition: transform 0.15s;
+    }
+    .btn-start:hover { transform: scale(1.05); background: #fff; }
+    .instructions-box {
+      margin-top: 20px; background: rgba(255, 255, 255, 0.08); padding: 14px 24px;
+      border-radius: 8px; max-width: 620px; font-size: 12.5px; line-height: 1.65; color: #ddd;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .instructions-box span { color: #ffd700; font-weight: bold; }
+
+    /* Inventory & Crafting Modal */
+    .game-panel {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      background: rgba(16, 21, 30, 0.96); border: 2px solid #ffd700; border-radius: 10px;
+      z-index: 80; display: none; box-shadow: 0 12px 35px rgba(0,0,0,0.85); padding: 20px; color: #fff;
+    }
+    #inventory-modal { width: 820px; height: 500px; }
+    .modal-layout { display: flex; gap: 20px; height: 100%; }
+    .inv-side { flex: 1.25; display: flex; flex-direction: column; }
+    .craft-side { flex: 1; display: flex; flex-direction: column; border-left: 1px solid #37474f; padding-left: 20px; }
+    .grid-slots { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; margin-top: 10px; }
+    .inv-slot {
+      width: 46px; height: 46px; background: #1e2736; border: 1px solid #455a64;
+      border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .inv-slot:hover { border-color: #ffd700; }
+    .inv-slot img { width: 32px; height: 32px; image-rendering: pixelated; }
+    .inv-slot .count { position: absolute; right: 2px; bottom: 1px; font-size: 10px; color: #ffeb3b; font-weight: bold; }
+    .craft-list { overflow-y: auto; flex: 1; margin-top: 10px; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+    .craft-card {
+      background: #232d3b; padding: 7px 10px; border-radius: 5px; display: flex;
+      justify-content: space-between; align-items: center; font-size: 12px; gap: 8px;
+    }
+    .craft-card-left { display: flex; align-items: center; gap: 8px; }
+    .craft-card img { width: 26px; height: 26px; image-rendering: pixelated; }
+    .craft-btn {
+      background: #43a047; color: #fff; border: none; padding: 5px 11px;
+      border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold;
+    }
+    .craft-btn:hover { background: #66bb6a; }
+    .craft-btn:disabled { background: #455a64; color: #90a4ae; cursor: not-allowed; }
+
+    /* World Map Modal */
+    #map-modal { width: 460px; height: 500px; text-align: center; }
+    #world-map-canvas {
+      width: 380px; height: 380px; margin-top: 12px; border: 2px solid #546e7a;
+      image-rendering: pixelated; border-radius: 6px;
+    }
+
+    /* Settings & World Menu */
+    #settings-modal { width: 420px; padding: 22px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; font-size: 13px; }
+    .setting-row select, .setting-row input {
+      background: #263238; color: #fff; border: 1px solid #546e7a; padding: 5px 8px; border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="crosshair">+</div>
+  <div id="target-info"></div>
+  <div id="compass-bar">N (0°) | X: 8 Z: 8</div>
+  <div id="discovery-banner"></div>
+
+  <!-- Top-left UI -->
+  <div id="info-overlay">
+    <h1 id="ui-title">TAJIKCRAFT: LAND OF MOUNTAINS</h1>
+    <div><span id="ui-biome-lbl">Biome:</span> <b id="val-biome">Hissar Valley</b></div>
+    <div><span id="ui-altitude-lbl">Altitude:</span> <b id="val-altitude">28m</b> | <span id="ui-season-lbl">Season:</span> <b id="val-season">Spring</b></div>
+    <div><span id="ui-time-lbl">Time:</span> <b id="val-time">08:30</b> | FPS: <b id="val-fps">60</b></div>
+    <div><span id="ui-weather-lbl">Weather:</span> <b id="val-weather">Clear Alpine Sky</b> | Mode: <b id="val-mode">Survival</b></div>
+  </div>
+
+  <!-- Top-right quick buttons -->
+  <div id="top-actions">
+    <button class="mini-btn" onclick="toggleMap()">Map [M]</button>
+    <button class="mini-btn" onclick="toggleInventory('crafting_table')">Craft [Tab]</button>
+    <button class="mini-btn" onclick="cycleWeather()">Weather [V]</button>
+    <button class="mini-btn" onclick="toggleSettings()">Settings [P]</button>
+  </div>
+
+  <!-- Bottom Survival HUD -->
+  <div id="hud-bottom">
+    <div id="held-label">Wooden Pickaxe</div>
+    <div class="bars-row">
+      <div class="bar-wrap">
+        <span>HEALTH (САЛОМАТӢ)</span>
+        <div class="bar-bg"><div id="health-fill" class="bar-fill"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <span>HUNGER (ГУРУСНАГӢ)</span>
+        <div class="bar-bg"><div id="hunger-fill" class="bar-fill"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <span>STAMINA (ҚУВВАТ)</span>
+        <div class="bar-bg"><div id="stamina-fill" class="bar-fill"></div></div>
+      </div>
+      <div id="temp-label">Temp: 36.6°C (Comfortable)</div>
+    </div>
+    <div id="hotbar"></div>
+  </div>
+
+  <!-- Start / Pause Blocker -->
+  <div id="click-blocker" class="modal-backdrop">
+    <h1>TAJIKCRAFT</h1>
+    <h2>LAND OF MOUNTAINS • САРЗАМИНИ КӮҲҲО</h2>
+    <button class="btn-start" id="start-btn">EXPLORE TAJIKISTAN (ОҒОЗ КАРДАН)</button>
+    <div class="instructions-box">
+      <p>• <span>W, A, S, D</span>: Move | <span>Space</span>: Jump / Swim | <span>Shift</span>: Sprint | <span>Ctrl</span>: Crouch</p>
+      <p>• <span>Left Click</span>: Mine blocks (ores drop Coal, Iron, Lapis, Rubies) or Hunt wildlife</p>
+      <p>• <span>Right Click</span>: Place blocks • Bake in Tandoor • Rest on Bed • Shear/Milk Animals • Till Soil • Fish • Play Dutar</p>
+      <p>• <span>F5</span>: Toggle 1st / 3rd Person Tajik Explorer Avatar | <span>Tab / E</span>: Backpack & Crafting</p>
+      <p>• <span>M</span>: Tajikistan World Map | <span>V</span>: Weather | <span>P</span>: World Settings & Seed | <span>L</span>: Language (EN/TG/RU)</p>
+    </div>
+  </div>
+
+  <!-- Inventory & Crafting Modal -->
+  <div id="inventory-modal" class="game-panel">
+    <div class="modal-layout">
+      <div class="inv-side">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="color:#ffd700;">Backpack & Hotbar (36 Slots)</h3>
+          <button class="mini-btn" onclick="toggleInventory()">Close [Tab]</button>
+        </div>
+        <p style="font-size:11px; color:#aaa; margin-top:4px;">Click any slot to swap into active hotbar slot, or click slots 1-9 to select.</p>
+        <div id="inv-grid-container" class="grid-slots"></div>
+      </div>
+      <div class="craft-side">
+        <h3 id="craft-header" style="color:#4caf50;">Artisan Crafting Station</h3>
+        <p style="font-size:11px; color:#aaa; margin-top:4px;">Craft tools, Tajik architecture & cook traditional dishes</p>
+        <div id="crafting-list" class="craft-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exploration Map Modal -->
+  <div id="map-modal" class="game-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="color:#ffd700;">TAJIKISTAN EXPLORATION MAP</h3>
+      <button class="mini-btn" onclick="toggleMap()">Close [M]</button>
+    </div>
+    <canvas id="world-map-canvas" width="95" height="95"></canvas>
+    <p style="font-size:11px; color:#ccc; margin-top:8px;">
+      White: Pamir • Cyan: Fann • Green: Zeravshan/Hissar • Gold: Khatlon • Blue: Vakhsh
+    </p>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="game-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="color:#ffd700;">World & Game Settings</h3>
+      <button class="mini-btn" onclick="toggleSettings()">Close [P]</button>
+    </div>
+    <div class="setting-row">
+      <span>Game Mode:</span>
+      <select id="opt-gamemode" onchange="setGameMode(this.value)">
+        <option value="survival">Survival (Зиндамонӣ)</option>
+        <option value="creative">Creative (Эҷодӣ)</option>
+        <option value="peaceful">Peaceful (Ором)</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <span>Season:</span>
+      <select id="opt-season" onchange="setSeason(this.value)">
+        <option value="Spring">Spring (Баҳор)</option>
+        <option value="Summer">Summer (Тобистон)</option>
+        <option value="Autumn">Autumn (Тирамоҳ)</option>
+        <option value="Winter">Winter (Зимистон)</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <span>Language:</span>
+      <button class="mini-btn" id="btn-lang-set" onclick="toggleLanguage()">English (EN)</button>
+    </div>
+    <div class="setting-row">
+      <span>World Seed:</span>
+      <input type="text" id="input-seed" value="19910909" style="width:120px;">
+      <button class="mini-btn" onclick="regenerateWorldWithSeed()">Apply</button>
+    </div>
+    <div class="setting-row" style="margin-top:16px; border-top:1px solid #37474f; padding-top:12px;">
+      <button class="mini-btn" onclick="saveAllGameState()">Save World Now</button>
+      <button class="mini-btn" style="color:#ff8a80; border-color:#ff8a80;" onclick="resetWorldSave()">Reset Saved World</button>
+    </div>
+  </div>
+
+  <!-- Death Modal -->
+  <div id="death-modal" class="modal-backdrop" style="display:none; background: rgba(90,10,10,0.82);">
+    <h1 style="color:#ff5252;">YOU FELL IN THE MOUNTAINS</h1>
+    <p style="margin:10px 0 20px; color:#ffcdd2;" id="death-cause">Cause: Exhaustion</p>
+    <button class="btn-start" onclick="respawnPlayer()">Respawn at Camp / Bed</button>
+  </div>
+
+  <script src="three.min.js"></script>
+  <script>
+    // =========================================================================
+    // TAJIKCRAFT: LAND OF MOUNTAINS - WEB ENGINE (V2 - TEXTURED & FULL FEATURE)
+    // =========================================================================
+    const TILE_SIZE = 16;
+    const ATLAS_TILES = 16;
+    const UV_STEP = 1.0 / ATLAS_TILES;
+    const CHUNK_SIZE = 16;
+    const CHUNK_HEIGHT = 72;
+    const RENDER_DIST = 3; // 7x7 = 49 active streaming chunks around player!
+
+    let WORLD_SEED = parseInt(localStorage.getItem('tajikcraft_seed') || '19910909');
+
+    // --- BLOCK & ITEM REGISTRIES ---
+    const BLOCKS = {
+      AIR: 0, DIRT: 1, GRASS: 2, STONE: 3, SNOW: 4, ICE: 5, WATER: 6,
+      SAND: 7, GRAVEL: 8, CLAY: 9, COBBLESTONE: 10,
+      WOOD_JUNIPER: 11, WOOD_POPLAR: 12, WOOD_WALNUT: 13, PLANKS: 14,
+      LEAVES_JUNIPER: 15, LEAVES_POPLAR: 16, LEAVES_WALNUT: 17, LEAVES_APRICOT: 18,
+      PAMIR_GRANITE: 19, LIMESTONE: 20, SLATE: 21, RIVER_STONE: 22, RED_SANDSTONE: 23, LOESS_SOIL: 24,
+      COAL_ORE: 25, IRON_ORE: 26, COPPER_ORE: 27, GOLD_ORE: 28, LAPIS_ORE: 29, RUBY_ORE: 30,
+      CLAY_BRICK: 31, CARVED_WOOD: 32, SUZANI_CARPET: 33, TANDOOR: 34, GLASS: 35,
+      WOODEN_DOOR: 36, WOODEN_FENCE: 37, ROOF_TILE: 38, CHORXONA_PILLAR: 39,
+      CHEST: 40, WORKBENCH: 41, TULIP: 42, ARTEMISIA: 43, ALPINE_FLOWERS: 44,
+      WHEAT: 45, COTTON: 46, MELON: 47, BED: 48, TORCH: 49,
+      LEAVES_APPLE: 50, LEAVES_MULBERRY: 51, WOOD_WILLOW: 52, LEAVES_WILLOW: 53,
+      DECORATIVE_TILE: 54, FARMLAND: 55, MEDICINAL_HERBS: 56, MUDBRICK_PAKHSA: 57,
+      WOODEN_STAIRS: 58, SNOW_GRASS: 59
+    };
+
+    const ITEMS = {
+      WOOD_PICKAXE: 100, STONE_PICKAXE: 101, IRON_PICKAXE: 102,
+      WOOD_AXE: 103, STONE_AXE: 104, WOOD_SHOVEL: 106, WOOD_HOE: 109,
+      WOOD_SWORD: 111, IRON_SWORD: 113, PAMIR_KORD: 114, FISHING_ROD: 115,
+      STICK: 200, COAL: 201, IRON_INGOT: 202, COPPER_INGOT: 203, GOLD_INGOT: 204,
+      LAPIS_GEM: 205, RUBY_GEM: 206, CLAY_BALL: 207, RAW_COTTON: 209, FABRIC: 210,
+      WOOL: 211, LEATHER: 212, WHEAT_SEEDS: 300, WHEAT: 301, COTTON_SEEDS: 302,
+      NON_BREAD: 400, FATIR: 401, SAMBUSA: 402, OSHI_PALOV: 403, QURUTOB: 404, QURUT: 405,
+      DRIED_APRICOTS: 406, WALNUTS: 407, MELON_SLICE: 409, RAW_MEAT: 410, COOKED_MEAT: 411,
+      MILK_BOWL: 412, GREEN_TEA: 413, APPLE: 414, MULBERRY: 415, RAW_TROUT: 416, COOKED_TROUT: 417, EGG: 418,
+      TOKI_CAP: 500, CHAPAN_COAT: 501, PAMIRI_SOCKS: 502, DUTAR: 503, RUBAB: 504, TEAPOT: 505
+    };
+
+    const BLOCK_DEFS = {
+      [BLOCKS.AIR]: { name: "Air", solid: false, transparent: true },
+      [BLOCKS.DIRT]: { name: "Dirt (Хок)", solid: true, top: 1, side: 1, bottom: 1 },
+      [BLOCKS.GRASS]: { name: "Grass Block (Сабза)", solid: true, top: 0, side: 2, bottom: 1, drop: BLOCKS.DIRT },
+      [BLOCKS.STONE]: { name: "Mountain Stone", solid: true, top: 3, side: 3, bottom: 3, drop: BLOCKS.COBBLESTONE },
+      [BLOCKS.SNOW]: { name: "Pamir Snow (Барф)", solid: true, top: 4, side: 4, bottom: 4 },
+      [BLOCKS.ICE]: { name: "Glacier Ice (Ях)", solid: true, transparent: true, top: 5, side: 5, bottom: 5 },
+      [BLOCKS.WATER]: { name: "Glacial Water", solid: false, transparent: true, top: 6, side: 6, bottom: 6 },
+      [BLOCKS.SAND]: { name: "River Sand", solid: true, top: 7, side: 7, bottom: 7 },
+      [BLOCKS.GRAVEL]: { name: "Mountain Gravel", solid: true, top: 8, side: 8, bottom: 8 },
+      [BLOCKS.CLAY]: { name: "Alluvial Clay", solid: true, top: 9, side: 9, bottom: 9, drop: ITEMS.CLAY_BALL, dropItem: true },
+      [BLOCKS.COBBLESTONE]: { name: "Cobblestone", solid: true, top: 10, side: 10, bottom: 10 },
+      [BLOCKS.WOOD_JUNIPER]: { name: "Juniper Wood (Арча)", solid: true, top: 11, side: 12, bottom: 11 },
+      [BLOCKS.WOOD_POPLAR]: { name: "Poplar Wood (Сафеддор)", solid: true, top: 13, side: 14, bottom: 13 },
+      [BLOCKS.WOOD_WALNUT]: { name: "Walnut Wood", solid: true, top: 15, side: 16, bottom: 15 },
+      [BLOCKS.PLANKS]: { name: "Wooden Planks", solid: true, top: 17, side: 17, bottom: 17 },
+      [BLOCKS.LEAVES_JUNIPER]: { name: "Juniper Needles", solid: true, transparent: true, top: 18, side: 18, bottom: 18 },
+      [BLOCKS.LEAVES_POPLAR]: { name: "Poplar Leaves", solid: true, transparent: true, top: 19, side: 19, bottom: 19 },
+      [BLOCKS.LEAVES_WALNUT]: { name: "Walnut Leaves", solid: true, transparent: true, top: 20, side: 20, bottom: 20, drop: ITEMS.WALNUTS, dropItem: true },
+      [BLOCKS.LEAVES_APRICOT]: { name: "Apricot Foliage", solid: true, transparent: true, top: 21, side: 21, bottom: 21, drop: ITEMS.DRIED_APRICOTS, dropItem: true },
+      [BLOCKS.PAMIR_GRANITE]: { name: "Pamir Pink Granite", solid: true, top: 22, side: 22, bottom: 22 },
+      [BLOCKS.LIMESTONE]: { name: "Fann Limestone", solid: true, top: 23, side: 23, bottom: 23 },
+      [BLOCKS.SLATE]: { name: "Dark Slate", solid: true, top: 24, side: 24, bottom: 24 },
+      [BLOCKS.RIVER_STONE]: { name: "Vakhsh River Stone", solid: true, top: 25, side: 25, bottom: 25 },
+      [BLOCKS.RED_SANDSTONE]: { name: "Foothills Sandstone", solid: true, top: 26, side: 26, bottom: 26 },
+      [BLOCKS.LOESS_SOIL]: { name: "Loess Soil", solid: true, top: 27, side: 27, bottom: 27 },
+      [BLOCKS.COAL_ORE]: { name: "Coal Ore", solid: true, top: 28, side: 28, bottom: 28, drop: ITEMS.COAL, dropItem: true },
+      [BLOCKS.IRON_ORE]: { name: "Iron Ore", solid: true, top: 29, side: 29, bottom: 29, drop: ITEMS.IRON_INGOT, dropItem: true },
+      [BLOCKS.COPPER_ORE]: { name: "Copper Ore", solid: true, top: 30, side: 30, bottom: 30, drop: ITEMS.COPPER_INGOT, dropItem: true },
+      [BLOCKS.GOLD_ORE]: { name: "Zeravshan Gold Ore", solid: true, top: 31, side: 31, bottom: 31, drop: ITEMS.GOLD_INGOT, dropItem: true },
+      [BLOCKS.LAPIS_ORE]: { name: "Badakhshan Lapis Ore", solid: true, top: 32, side: 32, bottom: 32, drop: ITEMS.LAPIS_GEM, dropItem: true },
+      [BLOCKS.RUBY_ORE]: { name: "Pamir Ruby Ore", solid: true, top: 33, side: 33, bottom: 33, drop: ITEMS.RUBY_GEM, dropItem: true },
+      [BLOCKS.CLAY_BRICK]: { name: "Hisor Fortress Brick", solid: true, top: 34, side: 34, bottom: 34 },
+      [BLOCKS.CARVED_WOOD]: { name: "Carved Tajik Wood", solid: true, top: 35, side: 35, bottom: 35 },
+      [BLOCKS.SUZANI_CARPET]: { name: "Suzani Carpet Block", solid: true, top: 36, side: 36, bottom: 36 },
+      [BLOCKS.TANDOOR]: { name: "Tandoor Oven (Танӯр)", solid: true, top: 37, side: 38, bottom: 37 },
+      [BLOCKS.GLASS]: { name: "Glass Window", solid: true, transparent: true, top: 39, side: 39, bottom: 39 },
+      [BLOCKS.WOODEN_DOOR]: { name: "Wooden Door", solid: true, transparent: true, top: 40, side: 40, bottom: 40 },
+      [BLOCKS.WOODEN_FENCE]: { name: "Wooden Fence", solid: true, transparent: true, top: 41, side: 41, bottom: 41 },
+      [BLOCKS.ROOF_TILE]: { name: "Clay Roof Tile", solid: true, top: 42, side: 42, bottom: 42 },
+      [BLOCKS.CHORXONA_PILLAR]: { name: "Pamiri House Pillar", solid: true, top: 43, side: 43, bottom: 43 },
+      [BLOCKS.CHEST]: { name: "Sanduq Chest", solid: true, top: 44, side: 45, bottom: 44 },
+      [BLOCKS.WORKBENCH]: { name: "Artisan Workbench", solid: true, top: 46, side: 47, bottom: 17 },
+      [BLOCKS.TULIP]: { name: "Wild Mountain Tulip (Лола)", solid: false, transparent: true, is_plant: true, top: 48, side: 48 },
+      [BLOCKS.ARTEMISIA]: { name: "Artemisia (Дармона)", solid: false, transparent: true, is_plant: true, top: 49, side: 49 },
+      [BLOCKS.ALPINE_FLOWERS]: { name: "Alpine Wildflowers", solid: false, transparent: true, is_plant: true, top: 50, side: 50 },
+      [BLOCKS.WHEAT]: { name: "Wheat Crop", solid: false, transparent: true, is_plant: true, top: 51, side: 51, drop: ITEMS.WHEAT, dropItem: true },
+      [BLOCKS.COTTON]: { name: "Khatlon Cotton", solid: false, transparent: true, is_plant: true, top: 52, side: 52, drop: ITEMS.RAW_COTTON, dropItem: true },
+      [BLOCKS.MELON]: { name: "Tajik Sweet Melon", solid: true, top: 53, side: 53, bottom: 53, drop: ITEMS.MELON_SLICE, dropItem: true },
+      [BLOCKS.BED]: { name: "Tochak Bed", solid: true, top: 54, side: 54, bottom: 17 },
+      [BLOCKS.TORCH]: { name: "Torch (Машъал)", solid: false, transparent: true, is_plant: true, top: 55, side: 55 },
+      [BLOCKS.LEAVES_APPLE]: { name: "Apple Tree Leaves", solid: true, transparent: true, top: 56, side: 56, bottom: 56, drop: ITEMS.APPLE, dropItem: true },
+      [BLOCKS.LEAVES_MULBERRY]: { name: "Mulberry Leaves", solid: true, transparent: true, top: 57, side: 57, bottom: 57, drop: ITEMS.MULBERRY, dropItem: true },
+      [BLOCKS.WOOD_WILLOW]: { name: "Willow Wood", solid: true, top: 13, side: 58, bottom: 13 },
+      [BLOCKS.LEAVES_WILLOW]: { name: "Willow Leaves", solid: true, transparent: true, top: 59, side: 59, bottom: 59 },
+      [BLOCKS.DECORATIVE_TILE]: { name: "Turquoise Ceramic Tile", solid: true, top: 60, side: 60, bottom: 60 },
+      [BLOCKS.FARMLAND]: { name: "Tilled Farmland", solid: true, top: 61, side: 1, bottom: 1, drop: BLOCKS.DIRT },
+      [BLOCKS.MEDICINAL_HERBS]: { name: "Medicinal Mountain Herbs", solid: false, transparent: true, is_plant: true, top: 62, side: 62 },
+      [BLOCKS.MUDBRICK_PAKHSA]: { name: "Panjakent Mudbrick", solid: true, top: 63, side: 63, bottom: 63 },
+      [BLOCKS.WOODEN_STAIRS]: { name: "Wooden Steps", solid: true, top: 64, side: 64, bottom: 64 },
+      [BLOCKS.SNOW_GRASS]: { name: "Alpine Snow-Grass", solid: true, top: 4, side: 65, bottom: 1, drop: BLOCKS.DIRT }
+    };
+
+    const ITEM_DEFS = {
+      [ITEMS.WOOD_PICKAXE]: { name: "Wooden Pickaxe", tile: 68, is_tool: true, power: 2 },
+      [ITEMS.STONE_PICKAXE]: { name: "Stone Pickaxe", tile: 69, is_tool: true, power: 4 },
+      [ITEMS.IRON_PICKAXE]: { name: "Iron Pickaxe", tile: 70, is_tool: true, power: 6 },
+      [ITEMS.WOOD_AXE]: { name: "Wooden Axe", tile: 71, is_tool: true, power: 2 },
+      [ITEMS.STONE_AXE]: { name: "Stone Axe", tile: 72, is_tool: true, power: 4 },
+      [ITEMS.WOOD_SHOVEL]: { name: "Wooden Shovel", tile: 74, is_tool: true, power: 2 },
+      [ITEMS.WOOD_HOE]: { name: "Wooden Hoe", tile: 77, is_tool: true, is_hoe: true },
+      [ITEMS.WOOD_SWORD]: { name: "Wooden Sword", tile: 79, is_tool: true, dmg: 10 },
+      [ITEMS.IRON_SWORD]: { name: "Iron Sword", tile: 81, is_tool: true, dmg: 18 },
+      [ITEMS.PAMIR_KORD]: { name: "Pamir Kord Dagger", tile: 82, is_tool: true, dmg: 25 },
+      [ITEMS.FISHING_ROD]: { name: "River Fishing Rod", tile: 120, is_tool: true },
+      [ITEMS.STICK]: { name: "Wooden Stick", tile: 83 },
+      [ITEMS.COAL]: { name: "Mineral Coal", tile: 84 },
+      [ITEMS.IRON_INGOT]: { name: "Forged Iron Ingot", tile: 85 },
+      [ITEMS.COPPER_INGOT]: { name: "Copper Ingot", tile: 86 },
+      [ITEMS.GOLD_INGOT]: { name: "Zeravshan Gold Bar", tile: 87 },
+      [ITEMS.LAPIS_GEM]: { name: "Badakhshan Lapis", tile: 88 },
+      [ITEMS.RUBY_GEM]: { name: "Pamir Ruby Gem", tile: 89 },
+      [ITEMS.CLAY_BALL]: { name: "Clay Ball", tile: 90 },
+      [ITEMS.RAW_COTTON]: { name: "Khatlon Raw Cotton", tile: 92 },
+      [ITEMS.FABRIC]: { name: "Woven Cotton Fabric", tile: 93 },
+      [ITEMS.WOOL]: { name: "Mountain Sheep Wool", tile: 94 },
+      [ITEMS.LEATHER]: { name: "Cured Leather", tile: 95 },
+      [ITEMS.WHEAT_SEEDS]: { name: "Wheat Seeds", tile: 96, is_seed: true },
+      [ITEMS.WHEAT]: { name: "Harvested Wheat", tile: 97 },
+      [ITEMS.COTTON_SEEDS]: { name: "Cotton Seeds", tile: 98, is_seed: true },
+      [ITEMS.NON_BREAD]: { name: "Tandoor Non Bread", tile: 100, is_food: true, heal: 25, warm: 4 },
+      [ITEMS.FATIR]: { name: "Crispy Fatir Bread", tile: 101, is_food: true, heal: 22, warm: 4 },
+      [ITEMS.SAMBUSA]: { name: "Mutton Sambusa", tile: 102, is_food: true, heal: 35, warm: 8 },
+      [ITEMS.OSHI_PALOV]: { name: "Oshi Palov (Оши палав)", tile: 103, is_food: true, heal: 65, warm: 16 },
+      [ITEMS.QURUTOB]: { name: "Qurutob (Қурутоб)", tile: 104, is_food: true, heal: 55, warm: 12 },
+      [ITEMS.QURUT]: { name: "Dried Qurut Balls", tile: 105, is_food: true, heal: 14, warm: 2 },
+      [ITEMS.DRIED_APRICOTS]: { name: "Dried Apricots (Uryuk)", tile: 106, is_food: true, heal: 16, warm: 2 },
+      [ITEMS.WALNUTS]: { name: "Zeravshan Walnuts", tile: 107, is_food: true, heal: 14, warm: 3 },
+      [ITEMS.MELON_SLICE]: { name: "Sweet Melon Slice", tile: 109, is_food: true, heal: 18, warm: 0 },
+      [ITEMS.RAW_MEAT]: { name: "Raw Mountain Meat", tile: 110, is_food: true, heal: 8, warm: 0 },
+      [ITEMS.COOKED_MEAT]: { name: "Shashlik Meat", tile: 111, is_food: true, heal: 40, warm: 10 },
+      [ITEMS.MILK_BOWL]: { name: "Fresh Yak Milk", tile: 112, is_food: true, heal: 20, warm: 6 },
+      [ITEMS.GREEN_TEA]: { name: "Kok-Chai (Green Tea)", tile: 113, is_food: true, heal: 12, warm: 14 },
+      [ITEMS.APPLE]: { name: "Mountain Apple", tile: 124, is_food: true, heal: 15, warm: 0 },
+      [ITEMS.MULBERRY]: { name: "Sweet Mulberries", tile: 125, is_food: true, heal: 12, warm: 0 },
+      [ITEMS.RAW_TROUT]: { name: "Mountain Trout (Gulmohi)", tile: 121, is_food: true, heal: 12, warm: 0 },
+      [ITEMS.COOKED_TROUT]: { name: "Grilled Trout", tile: 122, is_food: true, heal: 38, warm: 10 },
+      [ITEMS.EGG]: { name: "Farm Egg", tile: 123 },
+      [ITEMS.TOKI_CAP]: { name: "Embroidered Toki Cap", tile: 114, warmBonus: 3.0 },
+      [ITEMS.CHAPAN_COAT]: { name: "Warm Quilted Chapan", tile: 115, warmBonus: 12.0 },
+      [ITEMS.PAMIRI_SOCKS]: { name: "Pamiri Jurab Socks", tile: 116, warmBonus: 6.0 },
+      [ITEMS.DUTAR]: { name: "Tajik Dutar", tile: 117, is_instrument: true },
+      [ITEMS.RUBAB]: { name: "Pamiri Rubab", tile: 118, is_instrument: true },
+      [ITEMS.TEAPOT]: { name: "Chaynik Teapot", tile: 119 }
+    };
+
+    const RECIPES = [
+      { id: BLOCKS.PLANKS, count: 4, is_block: true, req: { [BLOCKS.WOOD_JUNIPER]: 1 }, station: 'any', altWood: true },
+      { id: ITEMS.STICK, count: 4, is_block: false, req: { [BLOCKS.PLANKS]: 2 }, station: 'any' },
+      { id: BLOCKS.WORKBENCH, count: 1, is_block: true, req: { [BLOCKS.PLANKS]: 4 }, station: 'any' },
+      { id: BLOCKS.TORCH, count: 4, is_block: true, req: { [ITEMS.COAL]: 1, [ITEMS.STICK]: 1 }, station: 'any' },
+      { id: ITEMS.STONE_PICKAXE, count: 1, is_block: false, req: { [BLOCKS.COBBLESTONE]: 3, [ITEMS.STICK]: 2 }, station: 'any' },
+      { id: ITEMS.IRON_PICKAXE, count: 1, is_block: false, req: { [ITEMS.IRON_INGOT]: 3, [ITEMS.STICK]: 2 }, station: 'crafting_table' },
+      { id: ITEMS.WOOD_HOE, count: 1, is_block: false, req: { [BLOCKS.PLANKS]: 2, [ITEMS.STICK]: 2 }, station: 'any' },
+      { id: ITEMS.FISHING_ROD, count: 1, is_block: false, req: { [ITEMS.STICK]: 3, [ITEMS.RAW_COTTON]: 1 }, station: 'any' },
+      { id: ITEMS.PAMIR_KORD, count: 1, is_block: false, req: { [ITEMS.RUBY_GEM]: 1, [ITEMS.IRON_INGOT]: 2, [ITEMS.STICK]: 1 }, station: 'crafting_table' },
+      { id: BLOCKS.TANDOOR, count: 1, is_block: true, req: { [BLOCKS.CLAY_BRICK]: 4, [BLOCKS.COBBLESTONE]: 2 }, station: 'crafting_table' },
+      { id: BLOCKS.CLAY_BRICK, count: 4, is_block: true, req: { [ITEMS.CLAY_BALL]: 4 }, station: 'any' },
+      { id: BLOCKS.DECORATIVE_TILE, count: 4, is_block: true, req: { [BLOCKS.CLAY_BRICK]: 2, [ITEMS.LAPIS_GEM]: 1 }, station: 'crafting_table' },
+      { id: BLOCKS.SUZANI_CARPET, count: 1, is_block: true, req: { [ITEMS.WOOL]: 2, [ITEMS.RAW_COTTON]: 2 }, station: 'any' },
+      { id: ITEMS.CHAPAN_COAT, count: 1, is_block: false, req: { [ITEMS.WOOL]: 4, [ITEMS.RAW_COTTON]: 2 }, station: 'crafting_table' },
+      { id: ITEMS.TOKI_CAP, count: 1, is_block: false, req: { [ITEMS.RAW_COTTON]: 2, [ITEMS.WOOL]: 1 }, station: 'any' },
+      { id: ITEMS.DUTAR, count: 1, is_block: false, req: { [BLOCKS.PLANKS]: 3, [ITEMS.STICK]: 2 }, station: 'crafting_table' },
+      { id: ITEMS.NON_BREAD, count: 2, is_block: false, req: { [ITEMS.WHEAT]: 2 }, station: 'tandoor' },
+      { id: ITEMS.FATIR, count: 2, is_block: false, req: { [ITEMS.WHEAT]: 2, [ITEMS.MILK_BOWL]: 1 }, station: 'tandoor' },
+      { id: ITEMS.SAMBUSA, count: 2, is_block: false, req: { [ITEMS.WHEAT]: 2, [ITEMS.RAW_MEAT]: 1 }, station: 'tandoor' },
+      { id: ITEMS.COOKED_MEAT, count: 1, is_block: false, req: { [ITEMS.RAW_MEAT]: 1, [ITEMS.COAL]: 1 }, station: 'tandoor' },
+      { id: ITEMS.COOKED_TROUT, count: 1, is_block: false, req: { [ITEMS.RAW_TROUT]: 1, [ITEMS.COAL]: 1 }, station: 'tandoor' },
+      { id: ITEMS.OSHI_PALOV, count: 1, is_block: false, req: { [ITEMS.WHEAT]: 2, [ITEMS.RAW_MEAT]: 1 }, station: 'any' },
+      { id: ITEMS.QURUTOB, count: 1, is_block: false, req: { [ITEMS.FATIR]: 1, [ITEMS.MILK_BOWL]: 1 }, station: 'any' },
+      { id: ITEMS.GREEN_TEA, count: 2, is_block: false, req: { [BLOCKS.MEDICINAL_HERBS]: 1 }, station: 'any' },
+      { id: ITEMS.WHEAT_SEEDS, count: 2, is_block: false, req: { [ITEMS.WHEAT]: 1 }, station: 'any' }
+    ];
+
+    // --- PROCEDURAL AUDIO SYNTHESIZER ---
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new AudioCtx(); }
+
+    function playSound(freqStart, freqEnd, dur, type = 'triangle', vol = 0.2) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), audioCtx.currentTime + dur);
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + dur);
+    }
+
+    function playDutarStrum() {
+      if (!audioCtx) return;
+      const maqom = [293.66, 329.63, 392.00, 440.00, 523.25, 587.33];
+      const f = maqom[Math.floor(Math.random() * maqom.length)];
+      playSound(f, f * 0.99, 0.75, 'sawtooth', 0.25);
+      setTimeout(() => playSound(f * 1.5, f * 1.49, 0.5, 'triangle', 0.15), 90);
+    }
+
+    // --- TEXTURE ATLAS SPRITE EXTRACTOR ---
+    const tileSprites = {};
+    let atlasImageReady = false;
+    const atlasImg = new Image();
+    atlasImg.src = 'block_atlas.png';
+    atlasImg.onload = () => {
+      const off = document.createElement('canvas');
+      off.width = 16; off.height = 16;
+      const ctx = off.getContext('2d');
+      for (let idx = 0; idx < 160; idx++) {
+        const tx = (idx % 16) * 16;
+        const ty = Math.floor(idx / 16) * 16;
+        ctx.clearRect(0, 0, 16, 16);
+        ctx.drawImage(atlasImg, tx, ty, 16, 16, 0, 0, 16, 16);
+        tileSprites[idx] = off.toDataURL();
+      }
+      atlasImageReady = true;
+      renderHotbar();
+      updateHandModel();
+    };
+
+    function getSpriteForSlot(slot) {
+      if (!slot || !slot.id) return '';
+      let tileIdx = 0;
+      if (slot.is_block) {
+        const b = BLOCK_DEFS[slot.id] || {};
+        tileIdx = b.side !== undefined ? b.side : (b.top || 0);
+      } else {
+        const it = ITEM_DEFS[slot.id] || {};
+        tileIdx = it.tile !== undefined ? it.tile : 83;
+      }
+      return tileSprites[tileIdx] || '';
+    }
+
+    // --- THREE.JS SCENE SETUP ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x7bb0f5);
+    scene.fog = new THREE.FogExp2(0x7bb0f5, 0.011);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 320);
+    scene.add(camera);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 1.2);
+    sunLight.position.set(40, 80, 30);
+    sunLight.castShadow = true;
+    scene.add(sunLight);
+
+    // Visible Sun, Moon & Night Stars
+    const sunOrb = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffe066 }));
+    scene.add(sunOrb);
+    const moonOrb = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), new THREE.MeshBasicMaterial({ color: 0xdceeff }));
+    scene.add(moonOrb);
+
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = [];
+    for (let i = 0; i < 400; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const el = Math.random() * Math.PI * 0.45 + 0.05;
+      const r = 200;
+      starPos.push(Math.cos(a) * Math.cos(el) * r, Math.sin(el) * r, Math.sin(a) * Math.cos(el) * r);
+    }
+    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
+    const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.2, transparent: true, opacity: 0.0 }));
+    scene.add(starField);
+
+    // Weather Particles (Rain & Pamir Blizzard Snowflakes)
+    const weatherGeo = new THREE.BufferGeometry();
+    const wPos = new Float32Array(1200 * 3);
+    for (let i = 0; i < 1200; i++) {
+      wPos[i * 3] = (Math.random() - 0.5) * 40;
+      wPos[i * 3 + 1] = Math.random() * 25;
+      wPos[i * 3 + 2] = (Math.random() - 0.5) * 40;
+    }
+    weatherGeo.setAttribute('position', new THREE.BufferAttribute(wPos, 3));
+    const weatherMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, transparent: true, opacity: 0.8 });
+    const weatherParticles = new THREE.Points(weatherGeo, weatherMat);
+    weatherParticles.visible = false;
+    scene.add(weatherParticles);
+
+    // Atlas Material
+    const textureLoader = new THREE.TextureLoader();
+    const blockAtlasTex = textureLoader.load('block_atlas.png');
+    blockAtlasTex.magFilter = THREE.NearestFilter;
+    blockAtlasTex.minFilter = THREE.NearestMipmapNearestFilter;
+    const chunkMaterial = new THREE.MeshLambertMaterial({
+      map: blockAtlasTex,
+      vertexColors: true,
+      transparent: true,
+      alphaTest: 0.15,
+      side: THREE.DoubleSide
+    });
+    const entityAtlasMaterial = new THREE.MeshLambertMaterial({
+      map: blockAtlasTex,
+      transparent: true,
+      alphaTest: 0.15
+    });
+
+    function createTexturedBoxGeo(w, h, d, tileIdx) {
+      const geo = new THREE.BoxGeometry(w, h, d);
+      const tx = tileIdx % ATLAS_TILES;
+      const ty = Math.floor(tileIdx / ATLAS_TILES);
+      const u0 = tx * UV_STEP;
+      const v0 = 1.0 - (ty + 1) * UV_STEP;
+      const u1 = u0 + UV_STEP;
+      const v1 = v0 + UV_STEP;
+      const uvAttr = geo.attributes.uv;
+      for (let i = 0; i < uvAttr.count; i++) {
+        const u = uvAttr.getX(i);
+        const v = uvAttr.getY(i);
+        uvAttr.setXY(i, u0 + u * (u1 - u0), v0 + v * (v1 - v0));
+      }
+      uvAttr.needsUpdate = true;
+      return geo;
+    }
+
+    // --- 1ST PERSON HAND ITEM & 3RD PERSON EXPLORER AVATAR ---
+    const handGroup = new THREE.Group();
+    handGroup.position.set(0.45, -0.35, -0.7);
+    camera.add(handGroup);
+    let handMesh = null;
+
+    const explorerAvatar = new THREE.Group();
+    explorerAvatar.visible = false;
+    scene.add(explorerAvatar);
+    (function buildExplorerAvatar() {
+      const chapan = new THREE.Mesh(createTexturedBoxGeo(0.55, 0.72, 0.30, 115), entityAtlasMaterial);
+      chapan.position.y = 1.05;
+      explorerAvatar.add(chapan);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.42, 0.42), new THREE.MeshLambertMaterial({ color: 0xe2b894 }));
+      head.position.y = 1.62;
+      explorerAvatar.add(head);
+      const toki = new THREE.Mesh(createTexturedBoxGeo(0.46, 0.16, 0.46, 114), entityAtlasMaterial);
+      toki.position.y = 1.88;
+      explorerAvatar.add(toki);
+      const legMat = new THREE.MeshLambertMaterial({ color: 0x263238 });
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.68, 0.24), legMat);
+      legL.position.set(-0.14, 0.34, 0);
+      explorerAvatar.add(legL);
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.68, 0.24), legMat);
+      legR.position.set(0.14, 0.34, 0);
+      explorerAvatar.add(legR);
+    })();
+
+    // --- VOXEL WORLD, 8 BIOMES, LANDMARKS & STREAMING ---
+    const worldVoxels = new Map();
+    const chunks = new Map();
+    const modifiedBlocks = JSON.parse(localStorage.getItem('tajikcraft_modifications') || '{}');
+    let gameSeason = 'Spring';
+    let currentWeather = 'clear';
+    let gameMode = 'survival';
+
+    function voxelKey(x, y, z) { return `${x},${y},${z}`; }
+    function seededHash(x, z) {
+      let n = Math.sin(x * 12.9898 + z * 78.233 + WORLD_SEED) * 43758.5453;
+      return n - Math.floor(n);
+    }
+
+    function getBiome(wx, wz) {
+      const sx = wx + (WORLD_SEED % 1000);
+      const sz = wz - (WORLD_SEED % 777);
+      const cont = Math.sin(sx * 0.012) * Math.cos(sz * 0.012) * 0.5 + 0.5;
+      const temp = Math.sin(sx * 0.008 + sz * 0.006) * 0.5 + 0.5;
+      const moist = Math.cos(sx * 0.009 - sz * 0.009) * 0.5 + 0.5;
+
+      if (cont > 0.72) {
+        return temp < 0.5
+          ? { id: 0, name: "Pamir Mountains (Помир)", base: 42, amp: 20, temp: -10, rock: BLOCKS.PAMIR_GRANITE, top: BLOCKS.SNOW, sub: BLOCKS.SLATE, waterLvl: 18, tree: BLOCKS.WOOD_JUNIPER, treeChance: 0.004, plant: BLOCKS.ARTEMISIA, plantChance: 0.015 }
+          : { id: 1, name: "Fann Mountains (Кӯҳҳои Фон)", base: 34, amp: 16, temp: 9, rock: BLOCKS.LIMESTONE, top: BLOCKS.GRASS, sub: BLOCKS.DIRT, waterLvl: 21, tree: BLOCKS.WOOD_JUNIPER, treeChance: 0.02, plant: BLOCKS.ALPINE_FLOWERS, plantChance: 0.05 };
+      } else if (cont > 0.54) {
+        return moist > 0.5
+          ? { id: 7, name: "Alpine Meadows (Яйлоқ)", base: 32, amp: 8, temp: 12, rock: BLOCKS.LIMESTONE, top: BLOCKS.GRASS, sub: BLOCKS.DIRT, waterLvl: 20, tree: BLOCKS.WOOD_JUNIPER, treeChance: 0.008, plant: BLOCKS.TULIP, plantChance: 0.12 }
+          : { id: 6, name: "Semi-arid Foothills (Домани кӯҳҳо)", base: 26, amp: 10, temp: 26, rock: BLOCKS.RED_SANDSTONE, top: BLOCKS.RED_SANDSTONE, sub: BLOCKS.GRAVEL, waterLvl: 16, tree: BLOCKS.WOOD_JUNIPER, treeChance: 0.005, plant: BLOCKS.ARTEMISIA, plantChance: 0.04 };
+      } else if (cont > 0.34) {
+        return moist > 0.5
+          ? { id: 2, name: "Zeravshan Valley (Зарафшон)", base: 22, amp: 6, temp: 20, rock: BLOCKS.STONE, top: BLOCKS.GRASS, sub: BLOCKS.DIRT, waterLvl: 18, tree: BLOCKS.WOOD_WALNUT, treeChance: 0.03, plant: BLOCKS.TULIP, plantChance: 0.06 }
+          : { id: 3, name: "Hissar Valley (Ҳисор)", base: 20, amp: 5, temp: 22, rock: BLOCKS.STONE, top: BLOCKS.GRASS, sub: BLOCKS.DIRT, waterLvl: 17, tree: BLOCKS.WOOD_POPLAR, treeChance: 0.025, plant: BLOCKS.WHEAT, plantChance: 0.06 };
+      } else {
+        return moist > 0.5
+          ? { id: 5, name: "Vakhsh River Valley (Вахш)", base: 18, amp: 5, temp: 24, rock: BLOCKS.RIVER_STONE, top: BLOCKS.RIVER_STONE, sub: BLOCKS.GRAVEL, waterLvl: 19, tree: BLOCKS.WOOD_WILLOW, treeChance: 0.02, plant: BLOCKS.ARTEMISIA, plantChance: 0.03 }
+          : { id: 4, name: "Khatlon Lowlands (Хатлон)", base: 18, amp: 4, temp: 32, rock: BLOCKS.RED_SANDSTONE, top: BLOCKS.LOESS_SOIL, sub: BLOCKS.CLAY, waterLvl: 16, tree: BLOCKS.WOOD_POPLAR, treeChance: 0.012, plant: BLOCKS.COTTON, plantChance: 0.07 };
+      }
+    }
+
+    function getTerrainElevation(wx, wz) {
+      const sx = wx + (WORLD_SEED % 1000);
+      const sz = wz - (WORLD_SEED % 777);
+      const b = getBiome(wx, wz);
+      const ridge = Math.abs(Math.sin(sx * 0.04 + sz * 0.02) * Math.cos(sz * 0.035));
+      const riverDist = Math.abs(Math.sin(sx * 0.018 - sz * 0.014));
+      let h = b.base + ridge * b.amp;
+      if (riverDist < 0.16) h -= (0.16 - riverDist) * 38;
+      return Math.max(6, Math.min(CHUNK_HEIGHT - 8, Math.floor(h)));
+    }
+
+    function setVoxelWorld(x, y, z, id) {
+      if (y < 0 || y >= CHUNK_HEIGHT) return;
+      const k = voxelKey(x, y, z);
+      worldVoxels.set(k, id);
+    }
+
+    function getVoxelWorld(x, y, z) {
+      if (y < 0 || y >= CHUNK_HEIGHT) return BLOCKS.AIR;
+      return worldVoxels.get(voxelKey(x, y, z)) || BLOCKS.AIR;
+    }
+
+    function generateChunkData(cx, cz) {
+      for (let x = 0; x < CHUNK_SIZE; x++) {
+        for (let z = 0; z < CHUNK_SIZE; z++) {
+          const wx = cx * CHUNK_SIZE + x;
+          const wz = cz * CHUNK_SIZE + z;
+          const h = getTerrainElevation(wx, wz);
+          const biome = getBiome(wx, wz);
+          const snowTop = (gameSeason === 'Winter' && biome.top === BLOCKS.GRASS) ? BLOCKS.SNOW_GRASS : biome.top;
+
+          for (let y = 0; y <= Math.max(h, biome.waterLvl) + 1; y++) {
+            let id = BLOCKS.AIR;
+            const k = voxelKey(wx, y, wz);
+            if (modifiedBlocks[k] !== undefined) {
+              id = modifiedBlocks[k];
+            } else if (y === 0) {
+              id = BLOCKS.STONE;
+            } else if (y < h - 3) {
+              const r = seededHash(wx + y * 13, wz - y * 7);
+              id = biome.rock;
+              if (r < 0.03) id = BLOCKS.COAL_ORE;
+              else if (r < 0.045) id = BLOCKS.IRON_ORE;
+              else if (r < 0.052 && biome.id === 2) id = BLOCKS.GOLD_ORE;
+              else if (r < 0.058 && biome.id === 0) id = BLOCKS.LAPIS_ORE;
+              else if (r < 0.062 && biome.id === 0) id = BLOCKS.RUBY_ORE;
+            } else if (y < h) {
+              id = biome.sub;
+            } else if (y === h) {
+              id = (h < biome.waterLvl) ? BLOCKS.RIVER_STONE : snowTop;
+            } else if (y <= biome.waterLvl && h < biome.waterLvl) {
+              id = (gameSeason === 'Winter' && biome.id === 0 && y === biome.waterLvl) ? BLOCKS.ICE : BLOCKS.WATER;
+            }
+            if (id !== BLOCKS.AIR) setVoxelWorld(wx, y, wz, id);
+          }
+
+          // Vegetation & Orchard Trees
+          const rTree = seededHash(wx * 3, wz * 5);
+          if (h >= biome.waterLvl && x >= 2 && x <= 13 && z >= 2 && z <= 13 && rTree < biome.treeChance) {
+            let treeKind = biome.tree;
+            if (biome.id === 2) {
+              const rOrch = seededHash(wx * 11, wz * 17);
+              if (rOrch < 0.25) treeKind = 'apricot';
+              else if (rOrch < 0.5) treeKind = 'apple';
+              else if (rOrch < 0.72) treeKind = 'mulberry';
+            }
+            spawnTree(wx, h + 1, wz, treeKind);
+          } else if (h >= biome.waterLvl) {
+            const rPlant = seededHash(wx * 7, wz * 9);
+            if (rPlant < biome.plantChance) {
+              const plantId = (rPlant < biome.plantChance * 0.25) ? BLOCKS.MEDICINAL_HERBS : biome.plant;
+              setVoxelWorld(wx, h + 1, wz, plantId);
+            }
+          }
+        }
+      }
+
+      // Deterministic Cultural Landmarks
+      const lmHash = Math.floor(seededHash(cx * 31, cz * 47) * 1000);
+      const cwx = cx * CHUNK_SIZE + 8, cwz = cz * CHUNK_SIZE + 8;
+      const chb = getTerrainElevation(cwx, cwz);
+      const cb = getBiome(cwx, cwz);
+
+      if (cx === 0 && cz === 0) {
+        buildPamiriChorxona(cx * CHUNK_SIZE + 2, getTerrainElevation(cx * CHUNK_SIZE + 2, cz * CHUNK_SIZE + 2) + 1, cz * CHUNK_SIZE + 2);
+      } else if (cx === 1 && cz === 0) {
+        buildHisorFortress(cx * CHUNK_SIZE + 2, getTerrainElevation(cx * CHUNK_SIZE + 2, cz * CHUNK_SIZE + 2) + 1, cz * CHUNK_SIZE + 2);
+      } else if (cx === 0 && cz === 1) {
+        buildVillageHouse(cx * CHUNK_SIZE + 3, getTerrainElevation(cx * CHUNK_SIZE + 3, cz * CHUNK_SIZE + 3) + 1, cz * CHUNK_SIZE + 3);
+      } else if (cb.id === 0 && lmHash % 18 === 0) {
+        buildPamiriChorxona(cx * CHUNK_SIZE + 2, chb + 1, cz * CHUNK_SIZE + 2);
+      } else if (cb.id === 2 && lmHash % 20 === 0) {
+        buildPanjakentRuins(cx * CHUNK_SIZE + 2, chb + 1, cz * CHUNK_SIZE + 2);
+      } else if (cb.id === 3 && lmHash % 22 === 0) {
+        buildHisorFortress(cx * CHUNK_SIZE + 2, chb + 1, cz * CHUNK_SIZE + 2);
+      }
+    }
+
+    function spawnTree(rx, ry, rz, kind) {
+      let trunkBlock = BLOCKS.WOOD_JUNIPER;
+      let leafBlock = BLOCKS.LEAVES_JUNIPER;
+      if (kind === BLOCKS.WOOD_POPLAR) { trunkBlock = BLOCKS.WOOD_POPLAR; leafBlock = BLOCKS.LEAVES_POPLAR; }
+      else if (kind === BLOCKS.WOOD_WALNUT) { trunkBlock = BLOCKS.WOOD_WALNUT; leafBlock = BLOCKS.LEAVES_WALNUT; }
+      else if (kind === BLOCKS.WOOD_WILLOW) { trunkBlock = BLOCKS.WOOD_WILLOW; leafBlock = BLOCKS.LEAVES_WILLOW; }
+      else if (kind === 'apricot') { trunkBlock = BLOCKS.WOOD_WALNUT; leafBlock = BLOCKS.LEAVES_APRICOT; }
+      else if (kind === 'apple') { trunkBlock = BLOCKS.WOOD_WALNUT; leafBlock = BLOCKS.LEAVES_APPLE; }
+      else if (kind === 'mulberry') { trunkBlock = BLOCKS.WOOD_WALNUT; leafBlock = BLOCKS.LEAVES_MULBERRY; }
+
+      const h = (kind === BLOCKS.WOOD_POPLAR) ? 7 : 4;
+      for (let dy = 0; dy < h; dy++) {
+        setVoxelWorld(rx, ry + dy, rz, trunkBlock);
+        if (dy >= 2) {
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dz = -1; dz <= 1; dz++) {
+              if (dx === 0 && dz === 0) continue;
+              if (getVoxelWorld(rx + dx, ry + dy, rz + dz) === BLOCKS.AIR) {
+                setVoxelWorld(rx + dx, ry + dy, rz + dz, leafBlock);
+              }
+            }
+          }
+        }
+      }
+      setVoxelWorld(rx, ry + h, rz, leafBlock);
+    }
+
+    function buildPamiriChorxona(ox, oy, oz) {
+      for (let x = 0; x < 9; x++) {
+        for (let z = 0; z < 9; z++) {
+          setVoxelWorld(ox + x, oy, oz + z, BLOCKS.SLATE);
+          for (let y = 1; y < 4; y++) {
+            if (x === 0 || x === 8 || z === 0 || z === 8) {
+              if (z === 0 && x === 4 && y < 3) continue;
+              if (z === 8 && x === 4 && y === 2) setVoxelWorld(ox + x, oy + y, oz + z, BLOCKS.GLASS);
+              else setVoxelWorld(ox + x, oy + y, oz + z, BLOCKS.PAMIR_GRANITE);
+            } else {
+              setVoxelWorld(ox + x, oy + y, oz + z, BLOCKS.AIR);
+            }
+          }
+          setVoxelWorld(ox + x, oy + 4, oz + z, BLOCKS.PLANKS);
+        }
+      }
+      [[2,2],[6,2],[2,6],[6,6],[4,4]].forEach(([px, pz]) => {
+        for (let y = 1; y < 4; y++) setVoxelWorld(ox + px, oy + y, oz + pz, BLOCKS.CHORXONA_PILLAR);
+      });
+      setVoxelWorld(ox + 4, oy + 1, oz + 3, BLOCKS.SUZANI_CARPET);
+      setVoxelWorld(ox + 3, oy + 1, oz + 4, BLOCKS.SUZANI_CARPET);
+      setVoxelWorld(ox + 7, oy + 1, oz + 7, BLOCKS.TANDOOR);
+      setVoxelWorld(ox + 1, oy + 1, oz + 7, BLOCKS.CHEST);
+      setVoxelWorld(ox + 1, oy + 1, oz + 1, BLOCKS.BED);
+    }
+
+    function buildHisorFortress(ox, oy, oz) {
+      for (let x = 0; x < 12; x++) {
+        for (let z = 0; z < 4; z++) {
+          const isTower = (x <= 2 || x >= 9);
+          const maxH = isTower ? 8 : 5;
+          for (let y = 0; y < maxH; y++) {
+            if (!isTower && y < 3 && x >= 4 && x <= 7) continue;
+            if (y === maxH - 1 && (x + z) % 2 === 1 && isTower) continue;
+            setVoxelWorld(ox + x, oy + y, oz + z, BLOCKS.CLAY_BRICK);
+          }
+        }
+      }
+      setVoxelWorld(ox + 1, oy + 1, oz + 1, BLOCKS.TORCH);
+      setVoxelWorld(ox + 10, oy + 1, oz + 1, BLOCKS.TORCH);
+    }
+
+    function buildVillageHouse(ox, oy, oz) {
+      for (let x = 0; x < 8; x++) {
+        for (let z = 0; z < 8; z++) {
+          setVoxelWorld(ox + x, oy, oz + z, BLOCKS.COBBLESTONE);
+          if (z >= 2) {
+            for (let y = 1; y < 4; y++) {
+              if (x === 0 || x === 7 || z === 2 || z === 7) {
+                if (z === 2 && x === 3 && y < 3) continue;
+                setVoxelWorld(ox + x, oy + y, oz + z, BLOCKS.MUDBRICK_PAKHSA);
+              }
+            }
+          }
+          setVoxelWorld(ox + x, oy + 4, oz + z, BLOCKS.ROOF_TILE);
+        }
+      }
+      [0, 3, 7].forEach(px => {
+        for (let y = 1; y < 4; y++) setVoxelWorld(ox + px, oy + y, oz, BLOCKS.CARVED_WOOD);
+      });
+      setVoxelWorld(ox + 6, oy + 1, oz + 1, BLOCKS.TANDOOR);
+      setVoxelWorld(ox + 1, oy + 1, oz + 6, BLOCKS.WORKBENCH);
+      setVoxelWorld(ox + 6, oy + 1, oz + 6, BLOCKS.BED);
+    }
+
+    function buildPanjakentRuins(ox, oy, oz) {
+      for (let x = 0; x < 9; x++) {
+        for (let z = 0; z < 9; z++) {
+          setVoxelWorld(ox + x, oy, oz + z, BLOCKS.RED_SANDSTONE);
+          if (x === 0 || x === 8 || z === 0 || z === 8) {
+            const wh = ((x + z) % 3 === 0) ? 2 : 3;
+            for (let y = 1; y <= wh; y++) setVoxelWorld(ox + x, oy + y, oz + z, BLOCKS.MUDBRICK_PAKHSA);
+          }
+        }
+      }
+      setVoxelWorld(ox + 4, oy + 1, oz + 4, BLOCKS.DECORATIVE_TILE);
+      setVoxelWorld(ox + 5, oy + 1, oz + 4, BLOCKS.CHEST);
+    }
+
+    // --- CHUNK MESH BUILDER ---
+    const facesDef = [
+      { dir: [0, 1, 0], norm: [0, 1, 0], light: 1.0, corners: [[0,1,1],[1,1,1],[1,1,0],[0,1,0]], prop: 'top' },
+      { dir: [0, -1, 0], norm: [0, -1, 0], light: 0.55, corners: [[0,0,0],[1,0,0],[1,0,1],[0,0,1]], prop: 'bottom' },
+      { dir: [0, 0, 1], norm: [0, 0, 1], light: 0.82, corners: [[0,0,1],[1,0,1],[1,1,1],[0,1,1]], prop: 'side' },
+      { dir: [0, 0, -1], norm: [0, 0, -1], light: 0.75, corners: [[1,0,0],[0,0,0],[0,1,0],[1,1,0]], prop: 'side' },
+      { dir: [1, 0, 0], norm: [1, 0, 0], light: 0.88, corners: [[1,0,1],[1,0,0],[1,1,0],[1,1,1]], prop: 'side' },
+      { dir: [-1, 0, 0], norm: [-1, 0, 0], light: 0.80, corners: [[0,0,0],[0,0,1],[0,1,1],[0,1,0]], prop: 'side' }
+    ];
+
+    function rebuildChunkMesh(cx, cz) {
+      const key = `${cx},${cz}`;
+      if (chunks.has(key)) {
+        const old = chunks.get(key);
+        scene.remove(old);
+        old.geometry.dispose();
+        chunks.delete(key);
+      }
+
+      const positions = [], normals = [], uvs = [], colors = [];
+      for (let x = 0; x < CHUNK_SIZE; x++) {
+        for (let z = 0; z < CHUNK_SIZE; z++) {
+          const wx = cx * CHUNK_SIZE + x;
+          const wz = cz * CHUNK_SIZE + z;
+          for (let y = 0; y < CHUNK_HEIGHT; y++) {
+            const bId = getVoxelWorld(wx, y, wz);
+            if (bId === BLOCKS.AIR) continue;
+            const def = BLOCK_DEFS[bId] || BLOCK_DEFS[BLOCKS.STONE];
+            if (def.is_plant) {
+              addPlantQuad(wx, y, wz, def.side, positions, normals, uvs, colors);
+              continue;
+            }
+            for (const face of facesDef) {
+              const nId = getVoxelWorld(wx + face.dir[0], y + face.dir[1], wz + face.dir[2]);
+              const nDef = BLOCK_DEFS[nId] || BLOCK_DEFS[BLOCKS.AIR];
+              if (!nDef.solid || (nDef.transparent && nId !== bId)) {
+                const tileIdx = def[face.prop] !== undefined ? def[face.prop] : (def.side || 0);
+                const tx = tileIdx % ATLAS_TILES, ty = Math.floor(tileIdx / ATLAS_TILES);
+                const u0 = tx * UV_STEP, v0 = 1.0 - (ty + 1) * UV_STEP;
+                const u1 = u0 + UV_STEP, v1 = v0 + UV_STEP;
+                const c = face.corners;
+                pushV(positions, normals, uvs, colors, wx+c[0][0], y+c[0][1], wz+c[0][2], face.norm, u0, v0, face.light);
+                pushV(positions, normals, uvs, colors, wx+c[1][0], y+c[1][1], wz+c[1][2], face.norm, u1, v0, face.light);
+                pushV(positions, normals, uvs, colors, wx+c[2][0], y+c[2][1], wz+c[2][2], face.norm, u1, v1, face.light);
+                pushV(positions, normals, uvs, colors, wx+c[0][0], y+c[0][1], wz+c[0][2], face.norm, u0, v0, face.light);
+                pushV(positions, normals, uvs, colors, wx+c[2][0], y+c[2][1], wz+c[2][2], face.norm, u1, v1, face.light);
+                pushV(positions, normals, uvs, colors, wx+c[3][0], y+c[3][1], wz+c[3][2], face.norm, u0, v1, face.light);
+              }
+            }
+          }
+        }
+      }
+
+      if (positions.length === 0) return;
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      const mesh = new THREE.Mesh(geo, chunkMaterial);
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      scene.add(mesh);
+      chunks.set(key, mesh);
+    }
+
+    function pushV(pos, norm, uv, col, x, y, z, n, u, v, l) {
+      pos.push(x, y, z); norm.push(n[0], n[1], n[2]); uv.push(u, v); col.push(l, l, l);
+    }
+
+    function addPlantQuad(x, y, z, tileIdx, pos, norm, uv, col) {
+      const tx = tileIdx % ATLAS_TILES, ty = Math.floor(tileIdx / ATLAS_TILES);
+      const u0 = tx * UV_STEP, v0 = 1.0 - (ty + 1) * UV_STEP;
+      const u1 = u0 + UV_STEP, v1 = v0 + UV_STEP;
+      pushV(pos, norm, uv, col, x, y, z, [0,1,0], u0, v0, 1.0);
+      pushV(pos, norm, uv, col, x+1, y, z+1, [0,1,0], u1, v0, 1.0);
+      pushV(pos, norm, uv, col, x+1, y+1, z+1, [0,1,0], u1, v1, 1.0);
+      pushV(pos, norm, uv, col, x, y, z, [0,1,0], u0, v0, 1.0);
+      pushV(pos, norm, uv, col, x+1, y+1, z+1, [0,1,0], u1, v1, 1.0);
+      pushV(pos, norm, uv, col, x, y+1, z, [0,1,0], u0, v1, 1.0);
+      pushV(pos, norm, uv, col, x, y, z+1, [0,1,0], u0, v0, 1.0);
+      pushV(pos, norm, uv, col, x+1, y, z, [0,1,0], u1, v0, 1.0);
+      pushV(pos, norm, uv, col, x+1, y+1, z, [0,1,0], u1, v1, 1.0);
+      pushV(pos, norm, uv, col, x, y, z+1, [0,1,0], u0, v0, 1.0);
+      pushV(pos, norm, uv, col, x+1, y+1, z, [0,1,0], u1, v1, 1.0);
+      pushV(pos, norm, uv, col, x, y+1, z+1, [0,1,0], u0, v1, 1.0);
+    }
+
+    // Dynamic Infinite Streaming
+    const generatedCoords = new Set();
+    const chunkQueue = [];
+    let lastChunkX = 99999, lastChunkZ = 99999;
+
+    function updateStreamingChunks(forceSync = false) {
+      const pcx = Math.floor(player.pos.x / CHUNK_SIZE);
+      const pcz = Math.floor(player.pos.z / CHUNK_SIZE);
+      if (!forceSync && pcx === lastChunkX && pcz === lastChunkZ) return;
+      lastChunkX = pcx; lastChunkZ = pcz;
+
+      for (let dx = -RENDER_DIST; dx <= RENDER_DIST; dx++) {
+        for (let dz = -RENDER_DIST; dz <= RENDER_DIST; dz++) {
+          const cx = pcx + dx, cz = pcz + dz;
+          const k = `${cx},${cz}`;
+          if (!generatedCoords.has(k)) {
+            generatedCoords.add(k);
+            if (forceSync && Math.abs(dx) <= 1 && Math.abs(dz) <= 1) {
+              generateChunkData(cx, cz);
+              rebuildChunkMesh(cx, cz);
+            } else {
+              chunkQueue.push([cx, cz]);
+            }
+          } else if (!chunks.has(k)) {
+            chunkQueue.push([cx, cz]);
+          }
+        }
+      }
+
+      // Unload distant chunk meshes
+      for (const [key, mesh] of chunks.entries()) {
+        const [cx, cz] = key.split(',').map(Number);
+        if (Math.abs(cx - pcx) > RENDER_DIST + 2 || Math.abs(cz - pcz) > RENDER_DIST + 2) {
+          scene.remove(mesh);
+          mesh.geometry.dispose();
+          chunks.delete(key);
+        }
+      }
+    }
+
+    // --- TEXTURED 3D WILDLIFE ---
+    const animals = [];
+    function spawnAnimal(type, x, y, z) {
+      const group = new THREE.Group();
+      let coatTile = 128, name = "Marco Polo Sheep", hasHorns = false, health = 30, fly = false;
+      if (type === 'sheep') { coatTile = 128; name = "Marco Polo Sheep (Архар)"; hasHorns = true; }
+      else if (type === 'ibex') { coatTile = 130; name = "Siberian Ibex (Нахчир)"; hasHorns = true; }
+      else if (type === 'leopard') { coatTile = 129; name = "Snow Leopard (Бабр)"; health = 45; }
+      else if (type === 'yak') { coatTile = 131; name = "Pamir Yak (Ғажгов)"; hasHorns = true; health = 45; }
+      else if (type === 'eagle') { coatTile = 135; name = "Golden Eagle (Уқоб)"; fly = true; }
+      else if (type === 'fox') { coatTile = 134; name = "Red Fox (Рӯбоҳ)"; health = 20; }
+      else if (type === 'cow') { coatTile = 136; name = "Mountain Cow"; health = 35; }
+
+      const bodyGeo = fly ? createTexturedBoxGeo(1.4, 0.18, 0.55, coatTile) : createTexturedBoxGeo(0.7, 0.65, 1.15, coatTile);
+      const body = new THREE.Mesh(bodyGeo, entityAtlasMaterial);
+      body.position.y = fly ? 0 : 0.78;
+      group.add(body);
+
+      const head = new THREE.Mesh(createTexturedBoxGeo(0.42, 0.42, 0.48, coatTile), entityAtlasMaterial);
+      head.position.set(0, fly ? 0.1 : 1.18, -0.68);
+      group.add(head);
+
+      if (hasHorns) {
+        const horn = new THREE.Mesh(createTexturedBoxGeo(0.95, 0.25, 0.35, 140), entityAtlasMaterial);
+        horn.position.set(0, 1.48, -0.6);
+        group.add(horn);
+      }
+
+      const legs = [];
+      if (!fly) {
+        const legGeo = createTexturedBoxGeo(0.18, 0.55, 0.18, coatTile);
+        [[-0.24, 0.28, -0.38], [0.24, 0.28, -0.38], [-0.24, 0.28, 0.38], [0.24, 0.28, 0.38]].forEach(p => {
+          const l = new THREE.Mesh(legGeo, entityAtlasMaterial);
+          l.position.set(p[0], p[1], p[2]);
+          group.add(l);
+          legs.push(l);
+        });
+      }
+
+      group.position.set(x, y, z);
+      group.userData = { animalRef: null };
+      scene.add(group);
+      const animObj = { group, legs, type, name, health, fly, wanderTimer: 0, dx: 0, dz: 0, cooldown: 0 };
+      group.userData.animalRef = animObj;
+      group.traverse(c => { c.userData.animalRef = animObj; });
+      animals.push(animObj);
+    }
+
+    // --- PLAYER, INVENTORY & SURVIVAL ---
+    const player = {
+      pos: new THREE.Vector3(8.5, 30, 8.5),
+      vel: new THREE.Vector3(),
+      yaw: 0, pitch: 0, onGround: false, inWater: false,
+      health: 100, hunger: 100, stamina: 100, temp: 36.6,
+      thirdPerson: false, crouch: false,
+      spawn: new THREE.Vector3(8.5, 30, 8.5),
+      fallStartY: 30
+    };
+
+    const TOTAL_SLOTS = 36;
+    const defaultSlots = [
+      { id: ITEMS.WOOD_PICKAXE, count: 1, is_block: false },
+      { id: ITEMS.PAMIR_KORD, count: 1, is_block: false },
+      { id: ITEMS.WOOD_HOE, count: 1, is_block: false },
+      { id: ITEMS.FISHING_ROD, count: 1, is_block: false },
+      { id: ITEMS.NON_BREAD, count: 6, is_block: false },
+      { id: ITEMS.DUTAR, count: 1, is_block: false },
+      { id: BLOCKS.PLANKS, count: 24, is_block: true },
+      { id: BLOCKS.TORCH, count: 12, is_block: true },
+      { id: BLOCKS.SUZANI_CARPET, count: 4, is_block: true }
+    ];
+    let inventorySlots = JSON.parse(localStorage.getItem('tajikcraft_inventory') || 'null');
+    if (!inventorySlots || inventorySlots.length !== TOTAL_SLOTS) {
+      inventorySlots = Array.from({ length: TOTAL_SLOTS }, (_, i) => defaultSlots[i] || { id: 0, count: 0, is_block: false });
+      inventorySlots[9] = { id: ITEMS.WHEAT_SEEDS, count: 6, is_block: false };
+      inventorySlots[10] = { id: ITEMS.CHAPAN_COAT, count: 1, is_block: false };
+      inventorySlots[11] = { id: BLOCKS.TANDOOR, count: 1, is_block: true };
+      inventorySlots[12] = { id: BLOCKS.WORKBENCH, count: 1, is_block: true };
+    }
+    let activeSlot = 0;
+    let currentStation = 'crafting_table';
+    let swingTimer = 0;
+
+    function addItemToInventory(id, count, is_block) {
+      if (!id || count <= 0) return;
+      for (let i = 0; i < TOTAL_SLOTS; i++) {
+        if (inventorySlots[i].id === id && inventorySlots[i].is_block === is_block && inventorySlots[i].count < 64) {
+          inventorySlots[i].count += count;
+          renderHotbar();
+          return;
+        }
+      }
+      for (let i = 0; i < TOTAL_SLOTS; i++) {
+        if (inventorySlots[i].id === 0) {
+          inventorySlots[i] = { id, count, is_block };
+          renderHotbar();
+          return;
+        }
+      }
+    }
+
+    function countItemInInv(id) {
+      let total = 0;
+      inventorySlots.forEach(s => { if (s.id === id) total += s.count; });
+      return total;
+    }
+
+    function consumeItemFromInv(id, amt) {
+      let rem = amt;
+      for (let i = 0; i < TOTAL_SLOTS && rem > 0; i++) {
+        if (inventorySlots[i].id === id) {
+          const take = Math.min(rem, inventorySlots[i].count);
+          inventorySlots[i].count -= take;
+          rem -= take;
+          if (inventorySlots[i].count <= 0) inventorySlots[i] = { id: 0, count: 0, is_block: false };
+        }
+      }
+    }
+
+    function updateHandModel() {
+      if (handMesh) { handGroup.remove(handMesh); handMesh = null; }
+      const slot = inventorySlots[activeSlot];
+      if (!slot || !slot.id) {
+        document.getElementById('held-label').innerText = "Empty Hand";
+        return;
+      }
+      const name = slot.is_block ? (BLOCK_DEFS[slot.id] || {}).name : (ITEM_DEFS[slot.id] || {}).name;
+      document.getElementById('held-label').innerText = name || "Item";
+
+      if (slot.is_block) {
+        const tile = (BLOCK_DEFS[slot.id] || {}).side !== undefined ? BLOCK_DEFS[slot.id].side : (BLOCK_DEFS[slot.id].top || 0);
+        handMesh = new THREE.Mesh(createTexturedBoxGeo(0.28, 0.28, 0.28, tile), entityAtlasMaterial);
+      } else {
+        const tile = (ITEM_DEFS[slot.id] || {}).tile || 83;
+        handMesh = new THREE.Mesh(createTexturedBoxGeo(0.05, 0.34, 0.34, tile), entityAtlasMaterial);
+        handMesh.rotation.y = Math.PI * 0.45;
+      }
+      handGroup.add(handMesh);
+    }
+
+    function renderHotbar() {
+      const bar = document.getElementById('hotbar');
+      bar.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const s = inventorySlots[i];
+        const el = document.createElement('div');
+        el.className = 'slot' + (i === activeSlot ? ' active' : '');
+        const imgSrc = getSpriteForSlot(s);
+        const name = s.id ? (s.is_block ? (BLOCK_DEFS[s.id] || {}).name : (ITEM_DEFS[s.id] || {}).name) : '';
+        el.title = name;
+        el.innerHTML = `<span class="key-num">${i+1}</span>${imgSrc ? `<img src="${imgSrc}">` : ''}${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}`;
+        el.onclick = () => selectHotbar(i);
+        bar.appendChild(el);
+      }
+      updateHandModel();
+    }
+
+    function selectHotbar(idx) {
+      activeSlot = idx;
+      renderHotbar();
+    }
+
+    // --- UI MODALS (INVENTORY, MAP, SETTINGS) ---
+    function showBanner(msg) {
+      const b = document.getElementById('discovery-banner');
+      b.innerText = msg;
+      b.style.display = 'block';
+      clearTimeout(b._timer);
+      b._timer = setTimeout(() => { b.style.display = 'none'; }, 3500);
+    }
+
+    window.toggleInventory = function(station = 'crafting_table') {
+      const modal = document.getElementById('inventory-modal');
+      const open = modal.style.display === 'block';
+      if (!open) {
+        currentStation = station;
+        document.getElementById('craft-header').innerText = station === 'tandoor' ? 'Tandoor Bread Oven (Танӯр)' : 'Artisan Crafting Station';
+        document.exitPointerLock();
+        modal.style.display = 'block';
+        renderInventoryGrid();
+        renderCraftingRecipes();
+      } else {
+        modal.style.display = 'none';
+        document.body.requestPointerLock();
+      }
+    };
+
+    function renderInventoryGrid() {
+      const grid = document.getElementById('inv-grid-container');
+      grid.innerHTML = '';
+      inventorySlots.forEach((s, idx) => {
+        const el = document.createElement('div');
+        el.className = 'inv-slot';
+        const imgSrc = getSpriteForSlot(s);
+        const name = s.id ? (s.is_block ? (BLOCK_DEFS[s.id] || {}).name : (ITEM_DEFS[s.id] || {}).name) : 'Empty';
+        el.title = name;
+        el.innerHTML = `${imgSrc ? `<img src="${imgSrc}">` : ''}${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}`;
+        el.onclick = () => {
+          if (idx < 9) {
+            selectHotbar(idx);
+          } else {
+            const tmp = inventorySlots[activeSlot];
+            inventorySlots[activeSlot] = inventorySlots[idx];
+            inventorySlots[idx] = tmp;
+            renderHotbar();
+          }
+          renderInventoryGrid();
+          renderCraftingRecipes();
+        };
+        grid.appendChild(el);
+      });
+    }
+
+    function renderCraftingRecipes() {
+      const list = document.getElementById('crafting-list');
+      list.innerHTML = '';
+      RECIPES.forEach((rec, rIdx) => {
+        if (rec.station !== 'any' && currentStation !== 'crafting_table' && rec.station !== currentStation) return;
+        const outDef = rec.is_block ? BLOCK_DEFS[rec.id] : ITEM_DEFS[rec.id];
+        const outTile = rec.is_block ? (outDef.side !== undefined ? outDef.side : outDef.top) : outDef.tile;
+        const imgSrc = tileSprites[outTile] || '';
+
+        let canCraft = gameMode === 'creative';
+        if (!canCraft) {
+          canCraft = true;
+          for (const [reqIdStr, reqAmt] of Object.entries(rec.req)) {
+            const reqId = Number(reqIdStr);
+            if (rec.altWood && reqId === BLOCKS.WOOD_JUNIPER) {
+              const totalWood = countItemInInv(BLOCKS.WOOD_JUNIPER) + countItemInInv(BLOCKS.WOOD_POPLAR) + countItemInInv(BLOCKS.WOOD_WALNUT) + countItemInInv(BLOCKS.WOOD_WILLOW);
+              if (totalWood < reqAmt) canCraft = false;
+            } else if (countItemInInv(reqId) < reqAmt) {
+              canCraft = false;
+            }
+          }
+        }
+
+        const card = document.createElement('div');
+        card.className = 'craft-card';
+        card.innerHTML = `
+          <div class="craft-card-left">
+            ${imgSrc ? `<img src="${imgSrc}">` : ''}
+            <span>${outDef.name} (x${rec.count})</span>
+          </div>
+          <button class="craft-btn" ${canCraft ? '' : 'disabled'} onclick="executeCraft(${rIdx})">${rec.station === 'tandoor' ? 'Bake' : 'Craft'}</button>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    window.executeCraft = function(rIdx) {
+      const rec = RECIPES[rIdx];
+      if (gameMode !== 'creative') {
+        for (const [reqIdStr, reqAmt] of Object.entries(rec.req)) {
+          const reqId = Number(reqIdStr);
+          if (rec.altWood && reqId === BLOCKS.WOOD_JUNIPER) {
+            for (const wId of [BLOCKS.WOOD_JUNIPER, BLOCKS.WOOD_POPLAR, BLOCKS.WOOD_WALNUT, BLOCKS.WOOD_WILLOW]) {
+              if (countItemInInv(wId) >= reqAmt) { consumeItemFromInv(wId, reqAmt); break; }
+            }
+          } else {
+            consumeItemFromInv(reqId, reqAmt);
+          }
+        }
+      }
+      addItemToInventory(rec.id, rec.count, rec.is_block);
+      playSound(240, 320, 0.1, 'triangle', 0.2);
+      renderInventoryGrid();
+      renderCraftingRecipes();
+    };
+
+    window.toggleMap = function() {
+      const m = document.getElementById('map-modal');
+      const open = m.style.display === 'block';
+      if (!open) {
+        document.exitPointerLock();
+        m.style.display = 'block';
+        renderWorldMap();
+      } else {
+        m.style.display = 'none';
+        document.body.requestPointerLock();
+      }
+    };
+
+    function renderWorldMap() {
+      const canvas = document.getElementById('world-map-canvas');
+      const ctx = canvas.getContext('2d');
+      const sz = 95, px = Math.floor(player.pos.x), pz = Math.floor(player.pos.z);
+      const colors = ['#eceff1', '#26c6da', '#66bb6a', '#43a047', '#fbc02d', '#039be5', '#d87d56', '#9ccc65'];
+      for (let x = 0; x < sz; x++) {
+        for (let z = 0; z < sz; z++) {
+          const wx = px + (x - 47) * 3;
+          const wz = pz + (z - 47) * 3;
+          const b = getBiome(wx, wz);
+          ctx.fillStyle = colors[b.id] || '#4caf50';
+          ctx.fillRect(x, z, 1, 1);
+        }
+      }
+      ctx.fillStyle = '#ff1744';
+      ctx.fillRect(46, 46, 3, 3);
+    }
+
+    window.toggleSettings = function() {
+      const s = document.getElementById('settings-modal');
+      const open = s.style.display === 'block';
+      if (!open) {
+        document.exitPointerLock();
+        s.style.display = 'block';
+        document.getElementById('input-seed').value = WORLD_SEED;
+      } else {
+        s.style.display = 'none';
+        document.body.requestPointerLock();
+      }
+    };
+
+    window.setGameMode = function(m) {
+      gameMode = m;
+      document.getElementById('val-mode').innerText = m.charAt(0).toUpperCase() + m.slice(1);
+    };
+    window.setSeason = function(s) {
+      gameSeason = s;
+      document.getElementById('val-season').innerText = s;
+      showBanner(`Season changed to ${s}!`);
+    };
+    window.cycleWeather = function() {
+      const list = ['clear', 'rain', 'snowstorm', 'fog'];
+      const labels = { clear: 'Clear Alpine Sky', rain: 'Alpine Rain', snowstorm: 'Pamir Blizzard', fog: 'Mountain Mist' };
+      currentWeather = list[(list.indexOf(currentWeather) + 1) % list.length];
+      document.getElementById('val-weather').innerText = labels[currentWeather];
+      weatherParticles.visible = (currentWeather === 'rain' || currentWeather === 'snowstorm');
+      weatherMat.color.setHex(currentWeather === 'rain' ? 0x64b5f6 : 0xffffff);
+      weatherMat.size = currentWeather === 'rain' ? 0.16 : 0.30;
+    };
+    window.regenerateWorldWithSeed = function() {
+      const txt = document.getElementById('input-seed').value.trim();
+      WORLD_SEED = /^\d+$/.test(txt) ? parseInt(txt) : txt.split('').reduce((a,b)=>a+b.charCodeAt(0), 1991);
+      localStorage.setItem('tajikcraft_seed', WORLD_SEED);
+      localStorage.removeItem('tajikcraft_modifications');
+      location.reload();
+    };
+    window.saveAllGameState = function() {
+      localStorage.setItem('tajikcraft_modifications', JSON.stringify(modifiedBlocks));
+      localStorage.setItem('tajikcraft_inventory', JSON.stringify(inventorySlots));
+      showBanner("World & Inventory Saved!");
+    };
+    window.resetWorldSave = function() {
+      localStorage.removeItem('tajikcraft_modifications');
+      localStorage.removeItem('tajikcraft_inventory');
+      location.reload();
+    };
+
+    // Language Switcher
+    const LANGS = ['en', 'tg', 'ru'];
+    let langIdx = 0;
+    window.toggleLanguage = function() {
+      langIdx = (langIdx + 1) % LANGS.length;
+      const l = LANGS[langIdx];
+      const map = {
+        en: ["TAJIKCRAFT: LAND OF MOUNTAINS", "Biome:", "Altitude:", "Time:", "English (EN)"],
+        tg: ["ТОҶИККРАФТ: САРЗАМИНИ КӮҲҲО", "Минтақа:", "Баландӣ:", "Вақт:", "Тоҷикӣ (TG)"],
+        ru: ["ТАДЖИККРАФТ: СТРАНА ГОР", "Биом:", "Высота:", "Время:", "Русский (RU)"]
+      }[l];
+      document.getElementById('ui-title').innerText = map[0];
+      document.getElementById('ui-biome-lbl').innerText = map[1];
+      document.getElementById('ui-altitude-lbl').innerText = map[2];
+      document.getElementById('ui-time-lbl').innerText = map[3];
+      document.getElementById('btn-lang-set').innerText = map[4];
+    };
+
+    window.respawnPlayer = function() {
+      player.pos.copy(player.spawn);
+      player.vel.set(0, 0, 0);
+      player.health = 100; player.hunger = 100; player.stamina = 100; player.temp = 36.6;
+      document.getElementById('death-modal').style.display = 'none';
+      document.body.requestPointerLock();
+    };
+
+    // --- INPUTS & INTERACTION ---
+    const keys = {};
+    window.addEventListener('keydown', e => {
+      keys[e.code] = true;
+      if (e.code.startsWith('Digit')) {
+        const d = parseInt(e.code.replace('Digit', '')) - 1;
+        if (d >= 0 && d < 9) selectHotbar(d);
+      }
+      if (e.code === 'F5') { e.preventDefault(); player.thirdPerson = !player.thirdPerson; explorerAvatar.visible = player.thirdPerson; }
+      if (e.code === 'Tab' || e.code === 'KeyE') { e.preventDefault(); toggleInventory(); }
+      if (e.code === 'KeyM') { e.preventDefault(); toggleMap(); }
+      if (e.code === 'KeyV') { cycleWeather(); }
+      if (e.code === 'KeyP') { toggleSettings(); }
+      if (e.code === 'KeyL') { toggleLanguage(); }
+    });
+    window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+    let isLocked = false;
+    document.getElementById('start-btn').addEventListener('click', () => {
+      initAudio();
+      document.body.requestPointerLock();
+    });
+    document.addEventListener('pointerlockchange', () => {
+      isLocked = document.pointerLockElement === document.body;
+      const anyModalOpen = document.getElementById('inventory-modal').style.display === 'block' ||
+                           document.getElementById('map-modal').style.display === 'block' ||
+                           document.getElementById('settings-modal').style.display === 'block' ||
+                           document.getElementById('death-modal').style.display === 'flex';
+      document.getElementById('click-blocker').style.display = (isLocked || anyModalOpen) ? 'none' : 'flex';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!isLocked) return;
+      player.yaw -= e.movementX * 0.0024;
+      player.pitch = Math.max(-1.5, Math.min(1.5, player.pitch - e.movementY * 0.0024));
+    });
+
+    const raycaster = new THREE.Raycaster();
+    let targetedBlock = null, targetedAnimal = null;
+
+    window.addEventListener('mousedown', e => {
+      if (!isLocked) return;
+      swingTimer = 0.2;
+      const slot = inventorySlots[activeSlot];
+
+      if (e.button === 0) { // LEFT CLICK: Mine Block or Hunt Animal
+        if (targetedAnimal) {
+          const itemDef = (!slot.is_block && slot.id) ? ITEM_DEFS[slot.id] : {};
+          const dmg = itemDef.dmg || 8;
+          targetedAnimal.health -= dmg;
+          playSound(120, 60, 0.1, 'sawtooth', 0.25);
+          showBanner(`Hit ${targetedAnimal.name} (-${dmg} HP)`);
+          if (targetedAnimal.health <= 0) {
+            scene.remove(targetedAnimal.group);
+            animals.splice(animals.indexOf(targetedAnimal), 1);
+            addItemToInventory(ITEMS.RAW_MEAT, 2, false);
+            addItemToInventory(targetedAnimal.type === 'sheep' ? ITEMS.WOOL : ITEMS.LEATHER, 1, false);
+            showBanner(`Hunted ${targetedAnimal.name}!`);
+          }
+          return;
+        }
+        if (targetedBlock && targetedBlock.id !== BLOCKS.AIR) {
+          playSound(150, 50, 0.09, 'triangle', 0.22);
+          const def = BLOCK_DEFS[targetedBlock.id] || {};
+          const dropId = def.drop !== undefined ? def.drop : targetedBlock.id;
+          const dropIsBlock = !def.dropItem;
+          addItemToInventory(dropId, 1, dropIsBlock);
+
+          const k = voxelKey(targetedBlock.x, targetedBlock.y, targetedBlock.z);
+          setVoxelWorld(targetedBlock.x, targetedBlock.y, targetedBlock.z, BLOCKS.AIR);
+          modifiedBlocks[k] = BLOCKS.AIR;
+          rebuildChunkMesh(Math.floor(targetedBlock.x / CHUNK_SIZE), Math.floor(targetedBlock.z / CHUNK_SIZE));
+          saveAllGameState();
+        }
+      } else if (e.button === 2) { // RIGHT CLICK: Workstations, Animals, Farming, Fishing, Eat, Place
+        if (targetedAnimal) {
+          if (targetedAnimal.cooldown <= 0) {
+            targetedAnimal.cooldown = 12;
+            if (targetedAnimal.type === 'sheep') {
+              addItemToInventory(ITEMS.WOOL, 2, false);
+              showBanner("Sheared Marco Polo Sheep Wool (+2)!");
+            } else if (targetedAnimal.type === 'yak' || targetedAnimal.type === 'cow') {
+              addItemToInventory(ITEMS.MILK_BOWL, 1, false);
+              showBanner("Milked Fresh Yak/Cow Milk (+1)!");
+            }
+          }
+          return;
+        }
+
+        if (targetedBlock) {
+          if (targetedBlock.id === BLOCKS.WORKBENCH) { toggleInventory('crafting_table'); return; }
+          if (targetedBlock.id === BLOCKS.TANDOOR) { toggleInventory('tandoor'); return; }
+          if (targetedBlock.id === BLOCKS.BED) {
+            gameHours = 7.0; player.health = 100;
+            player.spawn.set(targetedBlock.x + 0.5, targetedBlock.y + 1.5, targetedBlock.z + 0.5);
+            showBanner("Rested in Tochak Bed! Morning arrived & Spawn Set.");
+            return;
+          }
+          if (targetedBlock.id === BLOCKS.CHEST) {
+            addItemToInventory(ITEMS.DRIED_APRICOTS, 3, false);
+            addItemToInventory(ITEMS.LAPIS_GEM, 1, false);
+            showBanner("Found Pamir Apricots & Lapis in Sanduq Chest!");
+            return;
+          }
+        }
+
+        if (slot && !slot.is_block && slot.id) {
+          const it = ITEM_DEFS[slot.id] || {};
+          if (it.is_instrument) { playDutarStrum(); return; }
+          if (it.is_hoe && targetedBlock && [BLOCKS.GRASS, BLOCKS.DIRT, BLOCKS.LOESS_SOIL].includes(targetedBlock.id)) {
+            setVoxelWorld(targetedBlock.x, targetedBlock.y, targetedBlock.z, BLOCKS.FARMLAND);
+            modifiedBlocks[voxelKey(targetedBlock.x, targetedBlock.y, targetedBlock.z)] = BLOCKS.FARMLAND;
+            rebuildChunkMesh(Math.floor(targetedBlock.x / CHUNK_SIZE), Math.floor(targetedBlock.z / CHUNK_SIZE));
+            playSound(120, 90, 0.08);
+            return;
+          }
+          if (it.is_seed && targetedBlock && targetedBlock.id === BLOCKS.FARMLAND) {
+            const crop = slot.id === ITEMS.WHEAT_SEEDS ? BLOCKS.WHEAT : BLOCKS.COTTON;
+            setVoxelWorld(targetedBlock.x, targetedBlock.y + 1, targetedBlock.z, crop);
+            modifiedBlocks[voxelKey(targetedBlock.x, targetedBlock.y + 1, targetedBlock.z)] = crop;
+            rebuildChunkMesh(Math.floor(targetedBlock.x / CHUNK_SIZE), Math.floor(targetedBlock.z / CHUNK_SIZE));
+            slot.count--; if (slot.count <= 0) inventorySlots[activeSlot] = { id: 0, count: 0, is_block: false };
+            renderHotbar();
+            return;
+          }
+          if (slot.id === ITEMS.FISHING_ROD && player.inWater) {
+            addItemToInventory(ITEMS.RAW_TROUT, 1, false);
+            playSound(300, 500, 0.15);
+            showBanner("Caught a Mountain Trout (Gulmohi)!");
+            return;
+          }
+          if (it.is_food) {
+            player.hunger = Math.min(100, player.hunger + it.heal);
+            player.health = Math.min(100, player.health + it.heal * 0.25);
+            player.temp = Math.min(37.5, player.temp + it.warm * 0.3);
+            slot.count--; if (slot.count <= 0) inventorySlots[activeSlot] = { id: 0, count: 0, is_block: false };
+            playSound(280, 340, 0.1);
+            renderHotbar();
+            return;
+          }
+        }
+
+        if (slot && slot.is_block && slot.id && targetedBlock) {
+          const px = targetedBlock.x + targetedBlock.normal[0];
+          const py = targetedBlock.y + targetedBlock.normal[1];
+          const pz = targetedBlock.z + targetedBlock.normal[2];
+          setVoxelWorld(px, py, pz, slot.id);
+          modifiedBlocks[voxelKey(px, py, pz)] = slot.id;
+          if (gameMode !== 'creative') {
+            slot.count--; if (slot.count <= 0) inventorySlots[activeSlot] = { id: 0, count: 0, is_block: false };
+          }
+          playSound(210, 140, 0.08);
+          rebuildChunkMesh(Math.floor(px / CHUNK_SIZE), Math.floor(pz / CHUNK_SIZE));
+          renderHotbar();
+          saveAllGameState();
+        }
+      }
+    });
+
+    // --- 3D VOXEL COLLISION HELPERS ---
+    function isSolidAt(wx, wy, wz) {
+      const id = getVoxelWorld(Math.floor(wx), Math.floor(wy), Math.floor(wz));
+      return (BLOCK_DEFS[id] || {}).solid === true;
+    }
+
+    function checkCollisionAABB(pos) {
+      const r = 0.32;
+      for (let dy of [0.1, 0.9, 1.65]) {
+        for (let dx of [-r, r]) {
+          for (let dz of [-r, r]) {
+            if (isSolidAt(pos.x + dx, pos.y + dy, pos.z + dz)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    // --- INITIALIZE SPAWN ---
+    updateStreamingChunks(true);
+    let initGround = getTerrainElevation(8, 8);
+    while (isSolidAt(8, initGround + 1, 8) && initGround < CHUNK_HEIGHT - 4) initGround++;
+    player.pos.set(8.5, initGround + 1.5, 8.5);
+    player.spawn.copy(player.pos);
+    player.fallStartY = player.pos.y;
+
+    spawnAnimal('sheep', 12, getTerrainElevation(12, 12) + 1, 12);
+    spawnAnimal('ibex', 6, getTerrainElevation(6, 18) + 1, 18);
+    spawnAnimal('yak', 15, getTerrainElevation(15, 5) + 1, 5);
+    spawnAnimal('leopard', -4, getTerrainElevation(-4, 14) + 1, 14);
+    spawnAnimal('eagle', 10, getTerrainElevation(10, 10) + 18, 10);
+    renderHotbar();
+
+    // --- MAIN ANIMATION LOOP ---
+    let lastTime = performance.now(), frameCount = 0, fpsTime = 0, gameHours = 8.5;
+    const discoveredBiomes = new Set();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const now = performance.now();
+      const delta = Math.min(0.06, (now - lastTime) / 1000);
+      lastTime = now;
+
+      // Process up to 1 queued chunk per frame for smooth streaming
+      if (chunkQueue.length > 0) {
+        const [cx, cz] = chunkQueue.shift();
+        if (!chunks.has(`${cx},${cz}`)) {
+          generateChunkData(cx, cz);
+          rebuildChunkMesh(cx, cz);
+        }
+      }
+
+      // FPS
+      frameCount++; fpsTime += delta;
+      if (fpsTime >= 1.0) {
+        document.getElementById('val-fps').innerText = Math.round(frameCount / fpsTime);
+        frameCount = 0; fpsTime = 0;
+      }
+
+      // Day/Night Sky & Orbit
+      gameHours = (gameHours + delta * 0.04) % 24;
+      const hh = Math.floor(gameHours), mm = Math.floor((gameHours - hh) * 60);
+      document.getElementById('val-time').innerText = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+
+      const sunAng = (gameHours / 24.0) * Math.PI * 2 - Math.PI / 2;
+      sunOrb.position.set(player.pos.x + Math.cos(sunAng) * 140, Math.sin(sunAng) * 140, player.pos.z + 30);
+      moonOrb.position.set(player.pos.x - Math.cos(sunAng) * 140, -Math.sin(sunAng) * 140, player.pos.z + 30);
+      sunLight.position.copy(sunOrb.position);
+
+      const dayFactor = Math.max(0.0, Math.sin(sunAng));
+      sunLight.intensity = 0.1 + dayFactor * 1.15;
+      ambientLight.intensity = 0.22 + dayFactor * 0.48;
+      starField.material.opacity = Math.max(0.0, 0.9 - dayFactor * 3.0);
+      starField.position.set(player.pos.x, 0, player.pos.z);
+
+      const skyR = 0.05 + dayFactor * 0.43;
+      const skyG = 0.07 + dayFactor * 0.62;
+      const skyB = 0.16 + dayFactor * 0.80;
+      scene.background.setRGB(skyR, skyG, skyB);
+      scene.fog.color.setRGB(skyR, skyG, skyB);
+      scene.fog.density = currentWeather === 'fog' ? 0.035 : (currentWeather === 'snowstorm' ? 0.04 : 0.011);
+
+      // Weather Particles Animation
+      if (weatherParticles.visible) {
+        weatherParticles.position.set(player.pos.x, player.pos.y - 5, player.pos.z);
+        const arr = weatherParticles.geometry.attributes.position.array;
+        const fallSpeed = currentWeather === 'rain' ? 22 : 5;
+        for (let i = 0; i < 1200; i++) {
+          arr[i * 3 + 1] -= fallSpeed * delta;
+          if (arr[i * 3 + 1] < 0) arr[i * 3 + 1] = 25;
+        }
+        weatherParticles.geometry.attributes.position.needsUpdate = true;
+      }
+
+      // Player Water Check
+      const footBlock = getVoxelWorld(Math.floor(player.pos.x), Math.floor(player.pos.y + 0.2), Math.floor(player.pos.z));
+      player.inWater = (footBlock === BLOCKS.WATER);
+
+      // Movement & AABB Collision
+      player.crouch = keys['ControlLeft'] || keys['KeyC'];
+      const isSprinting = (keys['ShiftLeft'] || keys['ShiftRight']) && !player.crouch && player.stamina > 5;
+      const speed = player.inWater ? 3.2 : (player.crouch ? 2.4 : (isSprinting ? 7.5 : 4.8));
+      const move = new THREE.Vector3();
+      if (keys['KeyW'] || keys['ArrowUp']) move.z -= 1;
+      if (keys['KeyS'] || keys['ArrowDown']) move.z += 1;
+      if (keys['KeyA'] || keys['ArrowLeft']) move.x -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) move.x += 1;
+
+      if (move.length() > 0 && player.health > 0) {
+        move.normalize();
+        const sinY = Math.sin(player.yaw), cosY = Math.cos(player.yaw);
+        player.vel.x = (move.x * cosY + move.z * sinY) * speed;
+        player.vel.z = (-move.x * sinY + move.z * cosY) * speed;
+      } else {
+        player.vel.x *= 0.7; player.vel.z *= 0.7;
+      }
+
+      // Gravity / Buoyancy
+      if (player.inWater) {
+        player.vel.y = Math.max(-3.0, player.vel.y - 6.0 * delta);
+        if (keys['Space']) player.vel.y = 4.2;
+      } else {
+        player.vel.y -= 22.0 * delta;
+        if (keys['Space'] && player.onGround) {
+          player.vel.y = 7.6;
+          player.onGround = false;
+          if (gameMode === 'survival') player.stamina = Math.max(0, player.stamina - 10);
+        }
+      }
+
+      // Axis-separated AABB resolution
+      const prevX = player.pos.x;
+      player.pos.x += player.vel.x * delta;
+      if (checkCollisionAABB(player.pos)) player.pos.x = prevX;
+
+      const prevZ = player.pos.z;
+      player.pos.z += player.vel.z * delta;
+      if (checkCollisionAABB(player.pos)) player.pos.z = prevZ;
+
+      player.pos.y += player.vel.y * delta;
+      if (checkCollisionAABB(player.pos)) {
+        if (player.vel.y < 0) {
+          if (!player.onGround && !player.inWater && gameMode === 'survival') {
+            const fallDist = player.fallStartY - player.pos.y;
+            if (fallDist > 5.0) player.health = Math.max(0, player.health - (fallDist - 4.0) * 12);
+          }
+          player.pos.y = Math.floor(player.pos.y) + 1.001;
+          player.onGround = true;
+          player.fallStartY = player.pos.y;
+        } else {
+          player.pos.y = Math.floor(player.pos.y);
+        }
+        player.vel.y = 0;
+      } else {
+        if (player.onGround) player.fallStartY = player.pos.y;
+        player.onGround = false;
+      }
+
+      // Safety fallback floor
+      if (player.pos.y < 1) { player.pos.y = getTerrainElevation(player.pos.x, player.pos.z) + 2; player.vel.y = 0; }
+
+      updateStreamingChunks(false);
+
+      // Camera & Avatar Positioning
+      const eyeH = player.crouch ? 1.15 : 1.62;
+      const eyePos = new THREE.Vector3(player.pos.x, player.pos.y + eyeH, player.pos.z);
+      explorerAvatar.position.copy(player.pos);
+      explorerAvatar.rotation.y = player.yaw;
+
+      if (!player.thirdPerson) {
+        camera.position.copy(eyePos);
+        camera.rotation.set(player.pitch, player.yaw, 0, 'YXZ');
+        handGroup.visible = true;
+      } else {
+        const dist = 3.8;
+        camera.position.set(
+          eyePos.x + Math.sin(player.yaw) * Math.cos(player.pitch) * dist,
+          eyePos.y - Math.sin(player.pitch) * dist,
+          eyePos.z + Math.cos(player.yaw) * Math.cos(player.pitch) * dist
+        );
+        camera.lookAt(eyePos);
+        handGroup.visible = false;
+      }
+
+      // Animate Held Hand Swing
+      if (swingTimer > 0) {
+        swingTimer -= delta;
+        const s = Math.sin((1 - swingTimer / 0.2) * Math.PI) * 0.25;
+        handGroup.position.set(0.45 - s * 0.4, -0.35 + s * 0.3, -0.7 - s);
+        handGroup.rotation.set(-s * 2.0, s, 0);
+      } else {
+        handGroup.position.set(0.45, -0.35 + Math.sin(now * 0.004) * 0.015, -0.7);
+        handGroup.rotation.set(0, 0, 0);
+      }
+
+      // Compass & Biome Discovery
+      const deg = (( -player.yaw * 180 / Math.PI ) % 360 + 360) % 360;
+      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      document.getElementById('compass-bar').innerText = `${dirs[Math.round(deg / 45) % 8]} (${Math.round(deg)}°) | X:${Math.floor(player.pos.x)} Z:${Math.floor(player.pos.z)}`;
+      document.getElementById('val-altitude').innerText = `${Math.round(player.pos.y)}m`;
+
+      const curBiome = getBiome(player.pos.x, player.pos.z);
+      document.getElementById('val-biome').innerText = curBiome.name;
+      if (!discoveredBiomes.has(curBiome.id)) {
+        discoveredBiomes.add(curBiome.id);
+        showBanner(`Discovered Biome: ${curBiome.name}!`);
+      }
+
+      // Survival Updates
+      if (gameMode === 'creative') {
+        player.health = 100; player.hunger = 100; player.stamina = 100; player.temp = 36.6;
+      } else {
+        if (isSprinting && move.length() > 0) {
+          player.stamina = Math.max(0, player.stamina - 18 * delta);
+          player.hunger = Math.max(0, player.hunger - 0.14 * delta);
+        } else {
+          player.stamina = Math.min(100, player.stamina + 20 * delta);
+          if (gameMode === 'survival') player.hunger = Math.max(0, player.hunger - 0.04 * delta);
+        }
+        let targetTemp = curBiome.temp - (player.pos.y - 25) * 0.45;
+        if (gameSeason === 'Winter') targetTemp -= 12;
+        if (currentWeather === 'snowstorm') targetTemp -= 10;
+        if (countItemInInv(ITEMS.CHAPAN_COAT) > 0 && targetTemp < 36.6) targetTemp += (36.6 - targetTemp) * 0.5;
+        player.temp += (Math.max(15, Math.min(41, targetTemp)) - player.temp) * 0.015 * delta;
+
+        if (player.hunger <= 0 && gameMode === 'survival') player.health = Math.max(0, player.health - 2 * delta);
+        if (player.temp <= 22 && gameMode === 'survival') player.health = Math.max(0, player.health - 1.5 * delta);
+      }
+
+      if (player.health <= 0 && document.getElementById('death-modal').style.display === 'none') {
+        document.exitPointerLock();
+        document.getElementById('death-modal').style.display = 'flex';
+      }
+
+      document.getElementById('health-fill').style.width = `${player.health}%`;
+      document.getElementById('hunger-fill').style.width = `${player.hunger}%`;
+      document.getElementById('stamina-fill').style.width = `${player.stamina}%`;
+      const tempWarn = player.temp < 24 ? 'Hypothermia!' : (player.temp < 30 ? 'Chilly / Хунук' : 'Comfortable');
+      document.getElementById('temp-label').innerText = `Temp: ${player.temp.toFixed(1)}°C (${tempWarn})`;
+
+      // Raycasting for Block / Animal Target
+      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+      const animalHits = raycaster.intersectObjects(animals.map(a => a.group), true);
+      if (animalHits.length > 0 && animalHits[0].distance < 5.5) {
+        targetedAnimal = animalHits[0].object.userData.animalRef;
+        targetedBlock = null;
+        document.getElementById('target-info').innerText = `${targetedAnimal.name} (HP: ${Math.ceil(targetedAnimal.health)})`;
+        document.getElementById('target-info').style.display = 'block';
+      } else {
+        targetedAnimal = null;
+        const hits = raycaster.intersectObjects(Array.from(chunks.values()));
+        if (hits.length > 0 && hits[0].distance < 6.0) {
+          const hit = hits[0], n = hit.face.normal;
+          const bx = Math.floor(hit.point.x - n.x * 0.1), by = Math.floor(hit.point.y - n.y * 0.1), bz = Math.floor(hit.point.z - n.z * 0.1);
+          const bId = getVoxelWorld(bx, by, bz);
+          if (bId) {
+            document.getElementById('target-info').innerText = (BLOCK_DEFS[bId] || {}).name || "Block";
+            document.getElementById('target-info').style.display = 'block';
+            targetedBlock = { x: bx, y: by, z: bz, id: bId, normal: [n.x, n.y, n.z] };
+          } else {
+            document.getElementById('target-info').style.display = 'none'; targetedBlock = null;
+          }
+        } else {
+          document.getElementById('target-info').style.display = 'none'; targetedBlock = null;
+        }
+      }
+
+      // Animal AI Update
+      animals.forEach(anim => {
+        if (anim.cooldown > 0) anim.cooldown -= delta;
+        if (anim.fly) {
+          const t = now * 0.0007;
+          anim.group.position.x = player.pos.x + Math.cos(t) * 14;
+          anim.group.position.z = player.pos.z + Math.sin(t) * 14;
+          anim.group.position.y = getTerrainElevation(anim.group.position.x, anim.group.position.z) + 18 + Math.sin(t * 2) * 2;
+          anim.group.rotation.y = -t;
+          return;
+        }
+        anim.wanderTimer -= delta;
+        if (anim.wanderTimer <= 0) {
+          anim.wanderTimer = 2 + Math.random() * 4;
+          const a = Math.random() * Math.PI * 2;
+          anim.dx = Math.cos(a) * 1.4; anim.dz = Math.sin(a) * 1.4;
+        }
+        anim.group.position.x += anim.dx * delta;
+        anim.group.position.z += anim.dz * delta;
+        anim.group.position.y = getTerrainElevation(anim.group.position.x, anim.group.position.z) + 1.0;
+        anim.group.rotation.y = Math.atan2(-anim.dx, -anim.dz);
+        const swing = Math.sin(now * 0.008) * 0.45;
+        if (anim.legs.length === 4) {
+          anim.legs[0].rotation.x = swing; anim.legs[1].rotation.x = -swing;
+          anim.legs[2].rotation.x = -swing; anim.legs[3].rotation.x = swing;
+        }
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

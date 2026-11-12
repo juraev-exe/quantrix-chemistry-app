@@ -1,7 +1,8 @@
 import { elements } from '../data/elements.js';
+import { playTapSound, playSuccessSound, playErrorSound } from './audio.js';
 
 // ---------------------------------------------------------------------------
-// P1-1: m/v Concentration Calculator
+// Solution Concentration Calculator (m/v %)
 // ---------------------------------------------------------------------------
 export function initConcentration() {
   const calcBtn = document.getElementById("conc-btn");
@@ -12,24 +13,27 @@ export function initConcentration() {
   if (!calcBtn || !massInput || !volumeInput || !resultDiv) return;
 
   function calculateConcentration() {
+    playTapSound();
     const mass = parseFloat(massInput.value);
     const volume = parseFloat(volumeInput.value);
 
     if (isNaN(mass) || isNaN(volume)) {
       setError(resultDiv, "Please enter valid numeric values for mass and volume.");
+      playErrorSound();
       return;
     }
     if (mass < 0 || volume <= 0) {
       setError(resultDiv, "Volume must be greater than 0, and mass cannot be negative.");
+      playErrorSound();
       return;
     }
 
     const concentration = (mass / volume) * 100;
+    playSuccessSound();
     resultDiv.className = "success";
-    // P1-1 FIX: label changed to "(mass/volume)"
     resultDiv.innerHTML = `
       <div class="result-number">${concentration.toFixed(2)}%</div>
-      <div class="result-desc">${mass}g in ${volume}mL &mdash; Concentration (mass/volume)</div>
+      <div class="result-desc">${mass}g in ${volume}mL &mdash; Concentration (m/v)</div>
     `;
   }
 
@@ -46,7 +50,7 @@ export function initConcentration() {
 }
 
 // ---------------------------------------------------------------------------
-// P1-2: Molarity Calculator
+// Molarity Calculator (mol/L)
 // ---------------------------------------------------------------------------
 export function initMolarity() {
   const molarityBtn = document.getElementById("molarity-btn");
@@ -58,9 +62,8 @@ export function initMolarity() {
 
   if (!molarityBtn || !molResult) return;
 
-  // Populate element dropdown for auto molar-mass lookup
+  // Populate element dropdown
   if (molMassSelect) {
-    // Default blank option
     const blank = document.createElement("option");
     blank.value = "";
     blank.textContent = "— select element —";
@@ -68,7 +71,7 @@ export function initMolarity() {
 
     elements.forEach(el => {
       const opt = document.createElement("option");
-      opt.value = el.mass.replace(/[()]/g, ""); // strip parentheses from estimated values
+      opt.value = el.mass.replace(/[()]/g, "");
       opt.textContent = `${el.name} (${el.sym}) — ${el.mass} g/mol`;
       molMassSelect.appendChild(opt);
     });
@@ -81,30 +84,26 @@ export function initMolarity() {
   }
 
   function calculateMolarity() {
+    playTapSound();
     const soluteMass = parseFloat(molSoluteMass?.value);
     const molarMass = parseFloat(molMassInput?.value);
     const volumeL = parseFloat(molVolume?.value);
 
     if (isNaN(soluteMass) || isNaN(molarMass) || isNaN(volumeL)) {
       setError(molResult, "Please fill in all three fields with valid numbers.");
+      playErrorSound();
       return;
     }
-    if (molarMass <= 0) {
-      setError(molResult, "Molar mass must be greater than 0.");
-      return;
-    }
-    if (volumeL <= 0) {
-      setError(molResult, "Volume must be greater than 0.");
-      return;
-    }
-    if (soluteMass < 0) {
-      setError(molResult, "Solute mass cannot be negative.");
+    if (molarMass <= 0 || volumeL <= 0 || soluteMass < 0) {
+      setError(molResult, "Volume and molar mass must be greater than 0.");
+      playErrorSound();
       return;
     }
 
     const moles = soluteMass / molarMass;
     const molarity = moles / volumeL;
 
+    playSuccessSound();
     molResult.className = "success";
     molResult.innerHTML = `
       <div class="result-number">${molarity.toFixed(4)} mol/L</div>
@@ -127,7 +126,6 @@ export function initMolarity() {
   });
 }
 
-// Shared helper
 function setError(el, msg) {
   el.className = "error";
   el.textContent = msg;

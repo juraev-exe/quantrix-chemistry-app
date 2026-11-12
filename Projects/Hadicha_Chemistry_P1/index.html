@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Quantrix - Interactive chemistry learning application for 7th and 8th grade students featuring a periodic table, audio synthesis, calculator, and solution concentration tools." />
-  <title>Quantrix &mdash; Hadicha Ibragimova (Chemistry P1)</title>
+  <meta name="description" content="Quantrix — Interactive chemistry learning platform featuring a 118-element periodic table, acoustic frequency synthesis, scientific calculator, solution concentration, and element quiz." />
+  <title>Quantrix — Chemistry Learning Suite</title>
   <script>
     (function () {
       if (window.self !== window.top) {
         document.documentElement.classList.add('is-iframe');
       }
       try {
-        var t = localStorage.getItem('quantrix_theme');
+        var t = localStorage.getItem('quantrix-theme');
         if (t !== 'dark' && t !== 'light') {
           t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         }
@@ -23,7 +23,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./src/style.css" />
 </head>
 <body>
@@ -32,40 +32,76 @@
   <aside class="project-banner-header" aria-label="Project Breadcrumbs">
     <div class="banner-inner">
       <a href="/" class="dashboard-return-btn" title="Return to Student Projects Dashboard">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        <span>Student Projects Dashboard</span>
+        <span>Student Projects</span>
       </a>
       <div class="banner-meta">
-        <span class="banner-pill student">👤 Hadicha Ibragimova</span>
-        <span class="banner-pill subject">🧪 Chemistry</span>
+        <span class="banner-pill student">Hadicha Ibragimova</span>
+        <span class="banner-pill subject">Chemistry</span>
         <span class="banner-pill tag">P1</span>
       </div>
     </div>
   </aside>
 
+  <!-- App Header -->
   <header>
-    <h1 class="logo">QUANTRIX</h1>
-    <p class="subtitle">Interactive Chemistry Learning for 7th &amp; 8th Graders</p>
+    <div class="logo-wrap">
+      <span class="logo-mark">Qx</span>
+      <h1 class="logo">QUANTRIX</h1>
+    </div>
+    <p class="subtitle">Interactive Chemistry Learning Suite</p>
   </header>
 
+  <!-- Navigation Tabs -->
   <nav id="nav" aria-label="Main Navigation">
     <button class="nav-btn active" data-page="table-page" type="button">
-      <span>⚛️</span> Periodic Table
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+        <path d="M3 9h18"></path>
+        <path d="M3 15h18"></path>
+        <path d="M9 3v18"></path>
+        <path d="M15 3v18"></path>
+      </svg>
+      <span>Periodic Table</span>
     </button>
     <button class="nav-btn" data-page="calc-page" type="button">
-      <span>🧮</span> Calculator
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+        <line x1="8" y1="6" x2="16" y2="6"></line>
+        <line x1="16" y1="14" x2="16" y2="14.01"></line>
+        <line x1="12" y1="14" x2="12" y2="14.01"></line>
+        <line x1="8" y1="14" x2="8" y2="14.01"></line>
+        <line x1="16" y1="18" x2="16" y2="18.01"></line>
+        <line x1="12" y1="18" x2="12" y2="18.01"></line>
+        <line x1="8" y1="18" x2="8" y2="18.01"></line>
+      </svg>
+      <span>Calculator</span>
     </button>
     <button class="nav-btn" data-page="conc-page" type="button">
-      <span>🧪</span> Concentration
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"></path>
+        <path d="M8.5 2h7"></path>
+        <path d="M7 16h10"></path>
+      </svg>
+      <span>Concentration</span>
     </button>
     <button class="nav-btn" data-page="quiz-page" type="button">
-      <span>🎓</span> Quiz
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+        <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+      </svg>
+      <span>Quiz</span>
     </button>
     <button class="nav-btn" data-page="about-page" type="button">
-      <span>ℹ️</span> About
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      <span>About</span>
     </button>
   </nav>
 
@@ -73,65 +109,84 @@
     <!-- PERIODIC TABLE PAGE -->
     <section class="page active" id="table-page">
       <div class="poster-container">
-        <!-- Top Poster Header & Corner Slogans -->
+        <!-- Poster Header -->
         <div class="poster-header">
-          <div class="poster-header-center">
+          <div>
             <h2 class="poster-title">Periodic Table of the Elements</h2>
-            <div class="poster-subtitle">CHEMICAL ELEMENTS IN ORDER OF ATOMIC NUMBER</div>
-          </div>
-          <div class="modern-sticker" aria-label="Quantrix chemistry lab note">
-            <span class="sticker-mark">QX</span>
-            <span class="sticker-copy">
-              <strong>LAB NOTE</strong>
-              <small>ELEMENTS / 2026</small>
-            </span>
+            <p class="poster-subtitle">Chemical elements organized by atomic number and electron configuration</p>
           </div>
         </div>
 
-        <!-- P1-3: Search bar + P2: Mute toggle -->
+        <!-- Table Toolbar -->
         <div class="table-toolbar">
           <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
             <input
               type="search"
               id="element-search"
               class="element-search"
-              placeholder="Search element name or symbol…"
+              placeholder="Search by element name, symbol, or number"
               autocomplete="off"
               aria-label="Search periodic table"
             />
-            <button id="search-clear" class="search-clear" type="button" aria-label="Clear search" title="Clear">✕</button>
+            <button id="search-clear" class="search-clear" type="button" aria-label="Clear search" title="Clear">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
-          <button id="mute-toggle" class="mute-btn" type="button" aria-label="Toggle element sound">🔊 Sound On</button>
-          <button id="theme-toggle" class="mute-btn" type="button">☀️ Light</button>
+          <button id="mute-toggle" class="mute-btn" type="button" aria-label="Toggle sound">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <span>Sound</span>
+          </button>
+          <button id="theme-toggle" class="mute-btn" type="button" aria-label="Toggle theme">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <span>Theme</span>
+          </button>
         </div>
 
         <!-- Scrollable Table Board -->
         <div class="table-scroll-container">
           <div id="table-main" class="table-main-grid" role="region" aria-label="Periodic Table of Elements">
-            <!-- Rendered dynamically by periodicTable.js -->
+            <!-- Rendered dynamically -->
           </div>
 
           <!-- Bottom Lanthanides & Actinides (f-block) -->
           <div id="table-fblock" class="table-fblock-container">
-            <!-- Rendered dynamically by periodicTable.js -->
+            <!-- Rendered dynamically -->
           </div>
         </div>
 
-        <!-- Bottom Poster Slogans -->
+        <!-- Summary Footer -->
         <div class="poster-footer">
           <div class="poster-footer-left">
-            <span>KNOW</span>
-            <span>EXPLORE</span>
-            <span>DISCOVER</span>
+            <span>Groups 1–18</span>
+            <span>Periods 1–7</span>
+            <span>118 Elements</span>
           </div>
           <div class="poster-footer-center">
-            ELEMENTS FOR A BETTER TOMORROW
+            Standard IUPAC Periodic Table
           </div>
           <div class="poster-footer-right">
-            <span>A CLEANER</span>
-            <span>GREENER</span>
-            <span>BRIGHTER PLANET</span>
+            <span>s, p, d, f Blocks</span>
           </div>
         </div>
       </div>
@@ -148,7 +203,6 @@
 
     <!-- CONCENTRATION PAGE -->
     <section class="page" id="conc-page">
-      <!-- m/v % Card -->
       <div class="card">
         <h2>Solution Concentration (m/v %)</h2>
         <form id="conc-form" onsubmit="return false;">
@@ -160,13 +214,12 @@
             <label for="volume">Total Solution Volume (mL)</label>
             <input type="number" id="volume" placeholder="e.g. 250" step="any" min="0.001" required />
           </div>
-          <button id="conc-btn" type="submit">Calculate Concentration %</button>
+          <button id="conc-btn" type="submit">Calculate Concentration</button>
           <div id="conc-result" aria-live="polite"></div>
         </form>
       </div>
 
-      <!-- P1-2: Molarity Card -->
-      <div class="card" style="margin-top: 24px;">
+      <div class="card" style="margin-top: 20px;">
         <h2>Molarity Calculator (mol/L)</h2>
         <form id="molarity-form" onsubmit="return false;">
           <div class="field">
@@ -174,11 +227,11 @@
             <input type="number" id="mol-solute-mass" placeholder="e.g. 5.85" step="any" min="0" />
           </div>
           <div class="field">
-            <label for="mol-element-select">Auto-fill Molar Mass from Element</label>
+            <label for="mol-element-select">Molar Mass Reference (Element)</label>
             <select id="mol-element-select"></select>
           </div>
           <div class="field">
-            <label for="mol-molar-mass">Molar Mass (g/mol) — edit manually if needed</label>
+            <label for="mol-molar-mass">Molar Mass (g/mol)</label>
             <input type="number" id="mol-molar-mass" placeholder="e.g. 58.44" step="any" min="0.001" />
           </div>
           <div class="field">
@@ -191,12 +244,12 @@
       </div>
     </section>
 
-    <!-- QUIZ PAGE (P3) -->
+    <!-- QUIZ PAGE -->
     <section class="page" id="quiz-page">
       <div class="card quiz-card">
-        <h2>Element Quiz</h2>
+        <h2>Element Identification Quiz</h2>
         <div id="quiz-container">
-          <!-- Rendered dynamically by quiz.js -->
+          <!-- Rendered dynamically -->
         </div>
       </div>
     </section>
@@ -206,23 +259,23 @@
       <div class="card">
         <h2>About Quantrix</h2>
         <p class="about-text">
-          <b>Quantrix</b> is a student-centered chemistry platform designed to make middle school chemistry engaging, tactile, and intuitive.
+          <b>Quantrix</b> is a secondary chemistry platform designed to make chemical intuition intuitive, tactile, and mathematically grounded.
         </p>
         <p class="about-text">
-          Features include an interactive 118-element periodic table with real-time frequency synthesis via the Web Audio API, element search, keyboard navigation, molarity calculator, element quiz, and solution concentration tools.
+          Features include an interactive 118-element periodic table with calibrated acoustic frequency synthesis via the Web Audio API, real-time element search, keyboard navigation, molarity calculator, element quiz, and solution concentration tools.
         </p>
         <p class="about-text">
-          Created with ❤️ by <b>Hadicha Ibragimova</b>, student at <b>MMT School</b>.
+          Developed by <b>Hadicha Ibragimova</b>, student at <b>MMT School</b>.
         </p>
-        <span class="badge-tag">Class of 2026</span>
+        <span class="badge-tag">Academic Class of 2026</span>
       </div>
     </section>
   </main>
 
   <footer>
-    Quantrix &copy; Hadicha Ibragimova &mdash; MMT School &bull; Built with Vite
+    Quantrix &copy; Hadicha Ibragimova &mdash; MMT School &bull; Chemistry Class P1
   </footer>
 
-  <script type="module" src="./src/main.js"></script>
+  <script src="./src/bundle.js" defer></script>
 </body>
 </html>
